@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Heart, MessageCircle, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { FashionPost } from "./MasonryFeed";
+import { SizeGuide } from "./SizeGuide";
+import { ShareProduct } from "./ShareProduct";
 
 interface ItemDetailProps {
   item: FashionPost & {
@@ -178,9 +180,12 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
                   {/* Size Selector */}
                   {item.sizes && item.sizes.length > 0 && (
                     <div className="mb-6">
-                      <label className="block text-white text-sm mb-3 uppercase tracking-wider">
-                        Select Size
-                      </label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="block text-white text-sm uppercase tracking-wider">
+                          Select Size
+                        </label>
+                        <SizeGuide category="clothing" />
+                      </div>
                       <select
                         value={selectedSize}
                         onChange={(e) => setSelectedSize(e.target.value)}
@@ -210,12 +215,13 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
                     <button className="flex-1 bg-white text-black py-3 px-6 rounded-lg hover:bg-[#e0e0e0] transition-colors">
                       Add to Bag
                     </button>
-                    <button 
+                    <button
                       className="px-6 py-3 border border-white text-white rounded-lg hover:bg-white/10 transition-colors"
                       aria-label="Add to wishlist"
                     >
                       <Heart className="w-5 h-5" />
                     </button>
+                    <ShareProduct productTitle={item.caption} />
                   </div>
                 </>
               ) : (

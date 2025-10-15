@@ -3,6 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductReviews } from "@/components/ProductReviews";
 import { RelatedProducts } from "@/components/RelatedProducts";
+import { SizeGuide } from "@/components/SizeGuide";
+import { ProductDetails } from "@/components/ProductDetails";
+import { ShareProduct } from "@/components/ShareProduct";
 
 interface Product {
   id: string;
@@ -278,7 +281,10 @@ export function ProductDetailPage() {
 
             {/* Size Selection */}
             <div>
-              <label className="block text-white font-semibold mb-3">Select Size</label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-white font-semibold">Select Size</label>
+                <SizeGuide category={product.category} />
+              </div>
               <div className="flex gap-3">
                 {product.sizes.map((size) => (
                   <button
@@ -357,9 +363,11 @@ export function ProductDetailPage() {
                     ? 'border-red-500 bg-red-500 text-white'
                     : 'border-gray-700 text-white hover:border-gray-500'
                 }`}
+                aria-label="Add to wishlist"
               >
                 <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-white' : ''}`} />
               </button>
+              <ShareProduct productTitle={product.title} />
             </div>
 
             {/* Benefits */}
@@ -381,23 +389,12 @@ export function ProductDetailPage() {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="mb-16">
-          <div className="bg-gray-900 rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Product Description</h2>
-            <p className="text-gray-300 leading-relaxed mb-6">{product.description}</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Material</h3>
-                <p className="text-gray-400">{product.material}</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Care Instructions</h3>
-                <p className="text-gray-400">{product.careInstructions}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ProductDetails
+          description={product.description}
+          material={product.material}
+          careInstructions={product.careInstructions}
+          category={product.category}
+        />
 
         {/* Reviews Section */}
         <ProductReviews reviews={reviews} productId={product.id} averageRating={product.rating} totalReviews={product.reviewCount} />
