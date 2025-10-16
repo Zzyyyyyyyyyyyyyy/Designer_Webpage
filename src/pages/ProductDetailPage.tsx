@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight, Scale } from "lucide-react";
 import { ProductReviews } from "@/components/ProductReviews";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { SizeGuide } from "@/components/SizeGuide";
 import { ProductDetails } from "@/components/ProductDetails";
 import { ShareProduct } from "@/components/ShareProduct";
+import { ProductQA } from "@/components/ProductQA";
+import { useComparison } from "@/contexts/ComparisonContext";
 
 interface Product {
   id: string;
@@ -47,6 +49,7 @@ export function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const { addToComparison, removeFromComparison, isInComparison } = useComparison();
 
   useEffect(() => {
     // BACKEND API PLACEHOLDER: Fetch product details
@@ -367,6 +370,34 @@ export function ProductDetailPage() {
               >
                 <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-white' : ''}`} />
               </button>
+              <button
+                onClick={() => {
+                  const productData = {
+                    id: product.id,
+                    title: product.title,
+                    imageUrl: product.images[0],
+                    price: `$${product.price}`,
+                    sizes: product.sizes,
+                    description: product.description,
+                    material: product.material,
+                    careInstructions: product.careInstructions,
+                    category: product.category,
+                  };
+                  if (isInComparison(product.id)) {
+                    removeFromComparison(product.id);
+                  } else {
+                    addToComparison(productData);
+                  }
+                }}
+                className={`p-4 rounded-lg border-2 transition-colors ${
+                  isInComparison(product.id)
+                    ? 'border-white bg-white text-black'
+                    : 'border-gray-700 text-white hover:border-gray-500'
+                }`}
+                aria-label="Add to comparison"
+              >
+                <Scale className={`w-6 h-6`} />
+              </button>
               <ShareProduct productTitle={product.title} />
             </div>
 
@@ -395,6 +426,9 @@ export function ProductDetailPage() {
           careInstructions={product.careInstructions}
           category={product.category}
         />
+
+        {/* Product Q&A Section */}
+        <ProductQA productId={product.id} />
 
         {/* Reviews Section */}
         <ProductReviews reviews={reviews} productId={product.id} averageRating={product.rating} totalReviews={product.reviewCount} />

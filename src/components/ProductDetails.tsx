@@ -67,7 +67,7 @@ export function ProductDetails({ description, material, careInstructions, catego
   return (
     <div className="mb-16">
       <Tabs defaultValue="description" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-900 h-auto p-1 rounded-xl">
+        <TabsList className="grid w-full grid-cols-4 bg-black border border-gray-900 h-auto p-1 rounded-xl">
           <TabsTrigger
             value="description"
             className="data-[state=active]:bg-white data-[state=active]:text-black text-gray-400 py-3 rounded-lg transition-all"
@@ -96,11 +96,11 @@ export function ProductDetails({ description, material, careInstructions, catego
 
         {/* Description Tab */}
         <TabsContent value="description" className="mt-6">
-          <div className="bg-gray-900 rounded-xl p-8">
+          <div className="bg-black border border-gray-900 rounded-xl p-8">
             <h3 className="text-2xl font-bold text-white mb-4">Product Description</h3>
             <p className="text-gray-300 leading-relaxed mb-6">{description}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-900">
               <div>
                 <h4 className="text-lg font-semibold text-white mb-3">Key Features</h4>
                 <ul className="space-y-2 text-gray-400">
@@ -136,29 +136,29 @@ export function ProductDetails({ description, material, careInstructions, catego
 
         {/* Specifications Tab */}
         <TabsContent value="specifications" className="mt-6">
-          <div className="bg-gray-900 rounded-xl p-8">
+          <div className="bg-black border border-gray-900 rounded-xl p-8">
             <h3 className="text-2xl font-bold text-white mb-6">Technical Specifications</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               {specifications.map((spec, index) => (
-                <div key={index} className="flex justify-between py-3 border-b border-gray-800">
+                <div key={index} className="flex justify-between py-3 border-b border-gray-900">
                   <span className="text-gray-400 font-medium">{spec.label}</span>
                   <span className="text-white text-right">{spec.value}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-800">
+            <div className="mt-8 pt-8 border-t border-gray-900">
               <h4 className="text-lg font-semibold text-white mb-4">Sustainability</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                <div className="bg-gray-900/80 rounded-lg p-4 text-center">
                   <div className="text-green-500 text-2xl mb-2">♻️</div>
                   <p className="text-sm text-gray-300">Recyclable Materials</p>
                 </div>
-                <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                <div className="bg-gray-900/80 rounded-lg p-4 text-center">
                   <div className="text-green-500 text-2xl mb-2">🌱</div>
                   <p className="text-sm text-gray-300">Eco-Friendly Production</p>
                 </div>
-                <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                <div className="bg-gray-900/80 rounded-lg p-4 text-center">
                   <div className="text-green-500 text-2xl mb-2">✨</div>
                   <p className="text-sm text-gray-300">Ethical Manufacturing</p>
                 </div>
@@ -169,14 +169,14 @@ export function ProductDetails({ description, material, careInstructions, catego
 
         {/* Shipping Tab */}
         <TabsContent value="shipping" className="mt-6">
-          <div className="bg-gray-900 rounded-xl p-8">
+          <div className="bg-black border border-gray-900 rounded-xl p-8">
             <h3 className="text-2xl font-bold text-white mb-6">Shipping Information</h3>
             <div className="space-y-6">
               {shippingInfo.map((info, index) => {
                 const Icon = info.icon;
                 return (
-                  <div key={index} className="flex gap-4 pb-6 border-b border-gray-800 last:border-0">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
+                  <div key={index} className="flex gap-4 pb-6 border-b border-gray-900 last:border-0">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-900/80 rounded-lg flex items-center justify-center">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -188,12 +188,12 @@ export function ProductDetails({ description, material, careInstructions, catego
               })}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-800">
+            <div className="mt-8 pt-8 border-t border-gray-900">
               <h4 className="text-lg font-semibold text-white mb-4">International Shipping</h4>
               <p className="text-gray-400 mb-4">
                 We ship to over 100 countries worldwide. Customs duties and taxes may apply and are the responsibility of the customer.
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-4">
+              <div className="bg-gray-900/80 rounded-lg p-4">
                 <p className="text-sm text-gray-300">
                   <strong className="text-white">Note:</strong> Delivery times may vary during peak seasons and holidays.
                   You'll receive a tracking number via email once your order ships.
@@ -205,14 +205,14 @@ export function ProductDetails({ description, material, careInstructions, catego
 
         {/* Returns Tab */}
         <TabsContent value="returns" className="mt-6">
-          <div className="bg-gray-900 rounded-xl p-8">
+          <div className="bg-black border border-gray-900 rounded-xl p-8">
             <h3 className="text-2xl font-bold text-white mb-6">Returns & Exchanges</h3>
             <div className="space-y-6">
               {returnInfo.map((info, index) => {
                 const Icon = info.icon;
                 return (
-                  <div key={index} className="flex gap-4 pb-6 border-b border-gray-800 last:border-0">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
+                  <div key={index} className="flex gap-4 pb-6 border-b border-gray-900 last:border-0">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-900/80 rounded-lg flex items-center justify-center">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -224,7 +224,7 @@ export function ProductDetails({ description, material, careInstructions, catego
               })}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-800">
+            <div className="mt-8 pt-8 border-t border-gray-900">
               <h4 className="text-lg font-semibold text-white mb-4">Non-Returnable Items</h4>
               <ul className="space-y-2 text-gray-400">
                 <li className="flex items-start gap-2">
@@ -245,7 +245,7 @@ export function ProductDetails({ description, material, careInstructions, catego
                 </li>
               </ul>
 
-              <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+              <div className="mt-6 bg-gray-900/80 rounded-lg p-4">
                 <p className="text-sm text-gray-300">
                   <strong className="text-white">Questions?</strong> Contact our customer service team at{" "}
                   <a href="mailto:support@example.com" className="text-white hover:underline">

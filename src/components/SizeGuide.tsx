@@ -58,7 +58,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
           Size Guide
         </button>
       </DialogTrigger>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="bg-black border-gray-900 text-white max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Size Guide</DialogTitle>
           <DialogDescription className="text-gray-400">
@@ -73,7 +73,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-800">
+                  <tr className="border-b border-gray-900">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Size</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Chest</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Waist</th>
@@ -83,7 +83,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
                 </thead>
                 <tbody>
                   {sizeData.map((row) => (
-                    <tr key={row.size} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                    <tr key={row.size} className="border-b border-gray-900 hover:bg-gray-900/80 transition-colors">
                       <td className="py-3 px-4 font-semibold">{row.size}</td>
                       <td className="py-3 px-4 text-gray-300">{row.chest}</td>
                       <td className="py-3 px-4 text-gray-300">{row.waist}</td>
@@ -101,7 +101,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
             <h3 className="text-lg font-semibold mb-4">How to Measure</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {measurementTips.map((tip, index) => (
-                <div key={index} className="bg-gray-800/50 rounded-lg p-4">
+                <div key={index} className="bg-gray-900/80 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">{tip.title}</h4>
                   <p className="text-sm text-gray-400">{tip.description}</p>
                 </div>
@@ -110,7 +110,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
           </div>
 
           {/* Additional Info */}
-          <div className="bg-gray-800/50 rounded-lg p-4">
+          <div className="bg-gray-900/80 rounded-lg p-4">
             <h4 className="font-semibold mb-2">Model Information</h4>
             <p className="text-sm text-gray-400 mb-2">
               Model is 5'10" (178 cm) and wearing size S
@@ -121,7 +121,7 @@ export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
           </div>
 
           {/* Contact Note */}
-          <div className="text-center pt-4 border-t border-gray-800">
+          <div className="text-center pt-4 border-t border-gray-900">
             <p className="text-sm text-gray-400">
               Need help finding your size?{" "}
               <button className="text-white hover:underline">Contact us</button>

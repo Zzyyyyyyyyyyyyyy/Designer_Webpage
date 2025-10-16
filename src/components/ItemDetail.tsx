@@ -1,13 +1,23 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Heart, MessageCircle, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Scale, Play } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { FashionPost } from "./MasonryFeed";
 import { SizeGuide } from "./SizeGuide";
 import { ShareProduct } from "./ShareProduct";
+import { ProductQA } from "./ProductQA";
+import { useComparison } from "@/contexts/ComparisonContext";
+import { VideoPlayer } from "./VideoPlayer";
+
+interface MediaItem {
+  type: "image" | "video";
+  url: string;
+  thumbnail?: string;
+}
 
 interface ItemDetailProps {
   item: FashionPost & {
     images?: string[];
+    videoUrl?: string;
     price?: string;
     sizes?: string[];
     description?: string;
@@ -27,15 +37,23 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const { addToComparison, removeFromComparison, isInComparison } = useComparison();
 
-  const images = item.images || [item.imageUrl];
+  // Build media array (images + video)
+  const mediaItems: MediaItem[] = [
+    ...(item.images || [item.imageUrl]).map((url) => ({ type: "image" as const, url })),
+    ...(item.videoUrl ? [{ type: "video" as const, url: item.videoUrl, thumbnail: item.images?.[0] || item.imageUrl }] : []),
+  ];
+
+  const currentMedia = mediaItems[selectedImageIndex];
+  const isVideo = currentMedia?.type === "video";
 
   const handlePrevImage = () => {
-    setSelectedImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setSelectedImageIndex((prev) => (prev === 0 ? mediaItems.length - 1 : prev - 1));
   };
 
   const handleNextImage = () => {
-    setSelectedImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setSelectedImageIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1));
   };
 
   const handleScroll = (direction: "left" | "right") => {
@@ -95,24 +113,32 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Gallery Section - FULL BLEED COVER (do not change) */}
           <div className="w-full lg:flex-1 flex-shrink-0">
-            {/* Main Image Container - Fixed height with cover */}
-            <div 
-              className="relative bg-[#111] overflow-hidden group cursor-zoom-in"
+            {/* Main Media Container - Fixed height with cover */}
+            <div
+              className="relative bg-[#111] overflow-hidden group"
               style={{
                 height: '80vh',
                 minHeight: '560px',
               }}
-              onClick={handleImageClick}
             >
-              {/* Image with COVER behavior - fills container, crops edges */}
-              <ImageWithFallback
-                src={images[selectedImageIndex]}
-                alt={item.caption}
-                className="w-full h-full object-cover"
-              />
-              
-              {/* Image Navigation Arrows */}
-              {images.length > 1 && (
+              {isVideo ? (
+                <VideoPlayer
+                  videoUrl={currentMedia.url}
+                  poster={currentMedia.thumbnail}
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full cursor-zoom-in" onClick={handleImageClick}>
+                  <ImageWithFallback
+                    src={currentMedia.url}
+                    alt={item.caption}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Media Navigation Arrows */}
+              {mediaItems.length > 1 && (
                 <>
                   <button
                     onClick={(e) => {
@@ -137,23 +163,28 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
             </div>
 
             {/* Thumbnails - fixed size, does NOT affect main container height */}
-            {images.length > 1 && (
+            {mediaItems.length > 1 && (
               <div className="flex gap-2 overflow-x-auto scrollbar-hide mt-4 pb-2">
-                {images.map((image, index) => (
+                {mediaItems.map((media, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-20 bg-[#111] overflow-hidden transition-all ${
+                    className={`relative flex-shrink-0 w-20 h-20 bg-[#111] overflow-hidden transition-all ${
                       selectedImageIndex === index
                         ? "border border-white opacity-100"
                         : "border border-transparent opacity-75 hover:opacity-90"
                     }`}
                   >
                     <ImageWithFallback
-                      src={image}
+                      src={media.type === "video" ? (media.thumbnail || media.url) : media.url}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
+                    {media.type === "video" && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Play className="w-6 h-6 text-white" fill="currentColor" />
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -186,18 +217,21 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
                         </label>
                         <SizeGuide category="clothing" />
                       </div>
-                      <select
-                        value={selectedSize}
-                        onChange={(e) => setSelectedSize(e.target.value)}
-                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors"
-                      >
-                        <option value="">Choose a size</option>
+                      <div className="flex flex-wrap gap-2">
                         {item.sizes.map((size) => (
-                          <option key={size} value={size}>
+                          <button
+                            key={size}
+                            onClick={() => setSelectedSize(size)}
+                            className={`px-4 py-2 rounded-lg border transition-all ${
+                              selectedSize === size
+                                ? "border-white bg-white text-black font-semibold"
+                                : "border-[#2a2a2a] text-white hover:border-white/50"
+                            }`}
+                          >
                             {size}
-                          </option>
+                          </button>
                         ))}
-                      </select>
+                      </div>
                     </div>
                   )}
 
@@ -220,6 +254,32 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
                       aria-label="Add to wishlist"
                     >
                       <Heart className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const productData = {
+                          id: item.id,
+                          title: item.caption,
+                          imageUrl: item.imageUrl,
+                          price: item.price || "",
+                          sizes: item.sizes,
+                          description: item.description,
+                          category: "Fashion",
+                        };
+                        if (isInComparison(item.id)) {
+                          removeFromComparison(item.id);
+                        } else {
+                          addToComparison(productData);
+                        }
+                      }}
+                      className={`px-6 py-3 border rounded-lg transition-colors ${
+                        isInComparison(item.id)
+                          ? "border-white bg-white text-black"
+                          : "border-white text-white hover:bg-white/10"
+                      }`}
+                      aria-label="Add to comparison"
+                    >
+                      <Scale className="w-5 h-5" />
                     </button>
                     <ShareProduct productTitle={item.caption} />
                   </div>
@@ -285,6 +345,13 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
             </div>
           </div>
         </div>
+
+        {/* Product Q&A Section - Full width section */}
+        {item.isProduct && (
+          <div className="w-full border-t border-[#2a2a2a] pt-12 mt-16">
+            <ProductQA productId={item.id} />
+          </div>
+        )}
 
         {/* Related Items - Full width section */}
         {relatedItems.length > 0 && (
@@ -383,8 +450,8 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
             </button>
           </div>
 
-          {/* Image Navigation in Fullscreen */}
-          {images.length > 1 && (
+          {/* Media Navigation in Fullscreen */}
+          {mediaItems.length > 1 && !isVideo && (
             <>
               <button
                 onClick={(e) => {
@@ -408,25 +475,27 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
           )}
 
           {/* Fullscreen Image - FIT mode with zoom */}
-          <div 
-            className="relative overflow-auto max-w-[90vw] max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              animation: 'scaleIn 160ms ease-out',
-            }}
-          >
-            <ImageWithFallback
-              src={images[selectedImageIndex]}
-              alt={item.caption}
-              className="object-contain"
+          {!isVideo && (
+            <div
+              className="relative overflow-auto max-w-[90vw] max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
               style={{
-                transform: `scale(${zoomLevel})`,
-                transition: 'transform 200ms ease-out',
-                maxWidth: '90vw',
-                maxHeight: '90vh',
+                animation: 'scaleIn 160ms ease-out',
               }}
-            />
-          </div>
+            >
+              <ImageWithFallback
+                src={currentMedia.url}
+                alt={item.caption}
+                className="object-contain"
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transition: 'transform 200ms ease-out',
+                  maxWidth: '90vw',
+                  maxHeight: '90vh',
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 

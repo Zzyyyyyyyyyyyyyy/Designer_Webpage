@@ -91,14 +91,14 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
           <Share2 className="w-6 h-6" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-gray-900 border-gray-800 text-white" align="end">
+      <DropdownMenuContent className="w-56 bg-black border-gray-900 text-white" align="end">
         <div className="px-3 py-2 text-sm font-semibold">Share this product</div>
-        <DropdownMenuSeparator className="bg-gray-800" />
+        <DropdownMenuSeparator className="bg-gray-900" />
 
         {/* Social Media Platforms */}
         <DropdownMenuItem
           onClick={() => handleShare("facebook")}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-[#1877F2] rounded-full flex items-center justify-center">
             <Facebook className="w-4 h-4 text-white fill-white" />
@@ -108,7 +108,7 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
 
         <DropdownMenuItem
           onClick={() => handleShare("twitter")}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-[#1DA1F2] rounded-full flex items-center justify-center">
             <Twitter className="w-4 h-4 text-white fill-white" />
@@ -118,7 +118,7 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
 
         <DropdownMenuItem
           onClick={() => handleShare("pinterest")}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-[#E60023] rounded-full flex items-center justify-center text-white">
             📌
@@ -128,7 +128,7 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
 
         <DropdownMenuItem
           onClick={() => handleShare("whatsapp")}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-[#25D366] rounded-full flex items-center justify-center text-white">
             💬
@@ -138,7 +138,7 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
 
         <DropdownMenuItem
           onClick={() => handleShare("email")}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
             <Mail className="w-4 h-4 text-white" />
@@ -146,12 +146,12 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
           <span>Share via Email</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-gray-800" />
+        <DropdownMenuSeparator className="bg-gray-900" />
 
         {/* Copy Link */}
         <DropdownMenuItem
           onClick={handleCopyLink}
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
         >
           <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
             {copied ? <Check className="w-4 h-4 text-green-500" /> : <Link2 className="w-4 h-4 text-white" />}
@@ -162,10 +162,10 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
         {/* Native Share API (if available) */}
         {typeof navigator !== "undefined" && navigator.share && (
           <>
-            <DropdownMenuSeparator className="bg-gray-800" />
+            <DropdownMenuSeparator className="bg-gray-900" />
             <DropdownMenuItem
               onClick={handleNativeShare}
-              className="flex items-center gap-3 cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-gray-300 hover:text-white"
+              className="flex items-center gap-3 cursor-pointer hover:bg-gray-900/80 focus:bg-gray-900/80 text-gray-300 hover:text-white"
             >
               <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
                 <Share2 className="w-4 h-4 text-white" />

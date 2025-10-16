@@ -3,6 +3,8 @@ import { MasonryFeed, FashionPost } from "./components/MasonryFeed";
 import { FilterPanel } from "./components/FilterPanel";
 import { EmptyState } from "./components/EmptyState";
 import { ItemDetail } from "./components/ItemDetail";
+import { ComparisonBar, ProductComparison } from "./components/ProductComparison";
+import { ComparisonProvider, useComparison } from "./contexts/ComparisonContext";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -37,21 +39,57 @@ const mockPosts: ExtendedFashionPost[] = [
     id: "2",
     imageUrl: "https://images.unsplash.com/photo-1668934803312-2f04d43a648c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBmYXNoaW9uJTIwY2xvdGhpbmd8ZW58MXx8fHwxNzU5OTQ3NjY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Luxury tailored coat with refined details",
+    isProduct: true,
+    price: "$685",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    description: "Luxury tailored coat crafted from premium materials. Features refined details and impeccable construction for a sophisticated look.",
+    details: "Material: 90% Wool, 10% Cashmere\nMade in Italy\nDry clean only\nModel is 5'9\" and wears size M",
+    images: [
+      "https://images.unsplash.com/photo-1668934803312-2f04d43a648c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBmYXNoaW9uJTIwY2xvdGhpbmd8ZW58MXx8fHwxNzU5OTQ3NjY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1653875842174-429c1b467548?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBtaW5pbWFsfGVufDF8fHx8MTc2MDAxMzY1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "3",
     imageUrl: "https://images.unsplash.com/photo-1660486044177-45cd45bb5e99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHJlZXR3ZWFyJTIwc3R5bGV8ZW58MXx8fHwxNzYwMDE0MDY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Urban streetwear: Oversized hoodies and clean lines",
+    isProduct: true,
+    price: "$195",
+    sizes: ["S", "M", "L", "XL", "XXL"],
+    description: "Urban streetwear essentials featuring oversized silhouettes and clean, minimalist design. Perfect for the modern city dweller.",
+    details: "Material: 80% Cotton, 20% Polyester\nMade in USA\nMachine washable\nModel is 6'1\" and wears size L",
+    images: [
+      "https://images.unsplash.com/photo-1660486044177-45cd45bb5e99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHJlZXR3ZWFyJTIwc3R5bGV8ZW58MXx8fHwxNzYwMDE0MDY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1504198458649-3128b932f49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwb3V0Zml0fGVufDF8fHx8MTc2MDA0NTE1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "4",
     imageUrl: "https://images.unsplash.com/photo-1611254666354-d75bfe3cadbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMGFjY2Vzc29yaWVzfGVufDF8fHx8MTc2MDA0NTE0OXww&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Designer accessories for the modern minimalist",
+    isProduct: true,
+    price: "$145",
+    sizes: ["One Size"],
+    description: "Designer accessories that complement your minimalist wardrobe. High-quality craftsmanship meets timeless design.",
+    details: "Material: Premium Leather\nMade in Spain\nWipe clean with soft cloth\nDimensions: 8\" x 5\" x 2\"",
+    images: [
+      "https://images.unsplash.com/photo-1611254666354-d75bfe3cadbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMGFjY2Vzc29yaWVzfGVufDF8fHx8MTc2MDA0NTE0OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1625622176700-1ad9e716c8b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMHNob2VzfGVufDF8fHx8MTc2MDAxMTUzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "5",
     imageUrl: "https://images.unsplash.com/photo-1504198458649-3128b932f49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwb3V0Zml0fGVufDF8fHx8MTc2MDA0NTE1MXww&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Essential minimalist outfit: Less is more",
+    isProduct: true,
+    price: "$320",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    description: "Essential minimalist pieces that form the foundation of a versatile wardrobe. Timeless design meets everyday functionality.",
+    details: "Material: 100% Organic Cotton\nMade in Portugal\nMachine washable\nModel is 5'8\" and wears size S",
+    images: [
+      "https://images.unsplash.com/photo-1504198458649-3128b932f49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwb3V0Zml0fGVufDF8fHx8MTc2MDA0NTE1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1526632503813-6f479409d7bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaGljJTIwb3V0Zml0fGVufDF8fHx8MTc1OTk1MTIyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "6",
@@ -62,6 +100,15 @@ const mockPosts: ExtendedFashionPost[] = [
     id: "7",
     imageUrl: "https://images.unsplash.com/photo-1589212987511-4a924cb9d8ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwZHJlc3N8ZW58MXx8fHwxNzU5OTUwNzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Elegant evening dress with timeless appeal",
+    isProduct: true,
+    price: "$850",
+    sizes: ["XS", "S", "M", "L"],
+    description: "Elegant evening dress featuring timeless design and luxurious fabric. Perfect for special occasions and formal events.",
+    details: "Material: 100% Silk\nMade in France\nDry clean only\nModel is 5'10\" and wears size S",
+    images: [
+      "https://images.unsplash.com/photo-1589212987511-4a924cb9d8ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwZHJlc3N8ZW58MXx8fHwxNzU5OTUwNzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1704208316515-a32f81e373ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwcGhvdG9ncmFwaHl8ZW58MXx8fHwxNzU5OTc1MDE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "8",
@@ -77,20 +124,47 @@ const mockPosts: ExtendedFashionPost[] = [
     id: "10",
     imageUrl: "https://images.unsplash.com/photo-1641926362132-f820c474acfb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW1wb3JhcnklMjBzdHlsZXxlbnwxfHx8fDE3NjAwNDUxNTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Contemporary style for the creative soul",
+    isProduct: true,
+    price: "$275",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    description: "Contemporary pieces designed for the creative individual. Express yourself with unique patterns and thoughtful details.",
+    details: "Material: 70% Viscose, 30% Linen\nMade in Japan\nHand wash recommended\nModel is 5'7\" and wears size M",
+    images: [
+      "https://images.unsplash.com/photo-1641926362132-f820c474acfb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW1wb3JhcnklMjBzdHlsZXxlbnwxfHx8fDE3NjAwNDUxNTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1664851449299-cc7db4ea9858?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaWdoJTIwZmFzaGlvbiUyMHJ1bndheXxlbnwxfHx8fDE3NTk5OTY3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "11",
     imageUrl: "https://images.unsplash.com/photo-1625622176700-1ad9e716c8b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMHNob2VzfGVufDF8fHx8MTc2MDAxMTUzOHww&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Designer footwear: Every step is a statement",
+    isProduct: true,
+    price: "$395",
+    sizes: ["EU 36", "EU 37", "EU 38", "EU 39", "EU 40", "EU 41"],
+    description: "Designer footwear that combines style and comfort. Premium materials and expert craftsmanship in every detail.",
+    details: "Material: Full-grain Leather\nMade in Italy\nLeather sole\nHeel height: 2 inches",
+    images: [
+      "https://images.unsplash.com/photo-1625622176700-1ad9e716c8b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMHNob2VzfGVufDF8fHx8MTc2MDAxMTUzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1611254666354-d75bfe3cadbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMGFjY2Vzc29yaWVzfGVufDF8fHx8MTc2MDA0NTE0OXww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
   {
     id: "12",
     imageUrl: "https://images.unsplash.com/photo-1526632503813-6f479409d7bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaGljJTIwb3V0Zml0fGVufDF8fHx8MTc1OTk1MTIyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
     caption: "Chic everyday outfit: Effortless elegance",
+    isProduct: true,
+    price: "$240",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    description: "Chic everyday pieces that bring effortless elegance to your daily routine. Versatile and comfortable for all-day wear.",
+    details: "Material: 65% Cotton, 35% Tencel\nMade in Turkey\nMachine washable\nModel is 5'9\" and wears size S",
+    images: [
+      "https://images.unsplash.com/photo-1526632503813-6f479409d7bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaGljJTIwb3V0Zml0fGVufDF8fHx8MTc1OTk1MTIyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1504198458649-3128b932f49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwb3V0Zml0fGVufDF8fHx8MTc2MDA0NTE1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+    ],
   },
 ];
 
-export default function App() {
+function AppContent() {
   const [posts, setPosts] = useState<ExtendedFashionPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,6 +174,9 @@ export default function App() {
   const [filteredPosts, setFilteredPosts] = useState<ExtendedFashionPost[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ExtendedFashionPost | null>(null);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+
+  const { comparisonList, removeFromComparison, clearComparison } = useComparison();
 
   useEffect(() => {
     // Simulate initial loading
@@ -259,6 +336,28 @@ export default function App() {
           <MasonryFeed posts={posts} onItemClick={handleItemClick} />
         )}
       </main>
+
+      {/* Comparison Bar and Modal */}
+      <ComparisonBar
+        count={comparisonList.length}
+        onOpen={() => setIsComparisonOpen(true)}
+        onClear={clearComparison}
+      />
+      <ProductComparison
+        products={comparisonList}
+        onRemove={removeFromComparison}
+        onClear={clearComparison}
+        isOpen={isComparisonOpen}
+        onClose={() => setIsComparisonOpen(false)}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ComparisonProvider>
+      <AppContent />
+    </ComparisonProvider>
   );
 }
