@@ -1,5 +1,7 @@
 import { Search, Plus, MessageCircle, User, X, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 interface NavigationBarProps {
   onSearchChange?: (query: string, isActive: boolean) => void;
@@ -8,10 +10,13 @@ interface NavigationBarProps {
 }
 
 export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" }: NavigationBarProps) {
+  const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<"following" | "discover">("discover");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -24,10 +29,25 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
       if (e.key === "Escape" && isSearchOpen) {
         handleCloseSearch();
       }
+      if (e.key === "Escape" && isUserMenuOpen) {
+        setIsUserMenuOpen(false);
+      }
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isSearchOpen]);
+  }, [isSearchOpen, isUserMenuOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isUserMenuOpen]);
 
   const handleOpenSearch = () => {
     setIsSearchOpen(true);
@@ -45,13 +65,20 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
     onSearchChange?.(value, true);
   };
 
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
       <div className="max-w-[1600px] mx-auto px-6">
         {/* Main Header Row */}
         <div className="h-16 flex items-center justify-between">
           {/* Logo */}
-          <div className="text-white tracking-wider">DESIGNER</div>
+          <Link to="/" className="text-white tracking-wider hover:opacity-70 transition-opacity">
+            DESIGNER
+          </Link>
 
           {/* Center Toggle - Always visible */}
           <div className="flex items-center gap-8">
@@ -94,15 +121,53 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
                 <X className="w-5 h-5" />
               </button>
             )}
-            <button className="text-white hover:opacity-70 transition-opacity">
+            <Link
+              to="/upload"
+              className="text-white hover:opacity-70 transition-opacity"
+              title="Upload new post"
+            >
               <Plus className="w-5 h-5" />
-            </button>
-            <button className="text-white hover:opacity-70 transition-opacity">
+            </Link>
+            <Link to="/messages" className="text-white hover:opacity-70 transition-opacity">
               <MessageCircle className="w-5 h-5" />
-            </button>
-            <button className="text-white hover:opacity-70 transition-opacity">
-              <User className="w-5 h-5" />
-            </button>
+            </Link>
+            {isAuthenticated ? (
+              <div ref={userMenuRef} className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="text-white hover:opacity-70 transition-opacity"
+                  title="Account"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-black border border-white/20 shadow-lg">
+                    <div className="p-4 border-b border-white/10">
+                      <p className="text-white text-sm font-medium truncate">
+                        {user?.email}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        {user?.interests.length || 0} interests selected
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-3 text-white text-sm hover:bg-white/5 transition-colors"
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="text-white hover:opacity-70 transition-opacity"
+                title="Log in"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            )}
           </div>
         </div>
 
