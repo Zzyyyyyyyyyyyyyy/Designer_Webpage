@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "./ui/sheet";
 import { FilterOption } from "./FilterOption";
 import { useState, useEffect } from "react";
+import { TAGS } from "../constants/tags";
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -10,19 +11,6 @@ interface FilterPanelProps {
   onFilterChange: (filters: string[]) => void;
   resultCount?: number;
 }
-
-const filterOptions = [
-  { id: "clothing", label: "Clothing" },
-  { id: "accessories", label: "Accessories" },
-  { id: "footwear", label: "Footwear" },
-  { id: "jewelry", label: "Jewelry" },
-  { id: "bags", label: "Bags" },
-  { id: "outerwear", label: "Outerwear" },
-  { id: "dresses", label: "Dresses" },
-  { id: "streetwear", label: "Streetwear" },
-  { id: "luxury", label: "Luxury" },
-  { id: "minimal", label: "Minimal" },
-];
 
 export function FilterPanel({
   isOpen,
@@ -100,7 +88,7 @@ export function FilterPanel({
         {/* Filter options - Two columns on desktop, single column on mobile */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-            {filterOptions.map((option) => (
+            {TAGS.map((option) => (
               <FilterOption
                 key={option.id}
                 id={option.id}

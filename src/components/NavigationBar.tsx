@@ -1,6 +1,6 @@
 import { Search, Plus, MessageCircle, User, X, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 interface NavigationBarProps {
@@ -11,12 +11,16 @@ interface NavigationBarProps {
 
 export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" }: NavigationBarProps) {
   const { isAuthenticated, user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<"following" | "discover">("discover");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Determine active tab based on current route
+  const activeTab = location.pathname === "/following" ? "following" : "discover";
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -83,7 +87,7 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
           {/* Center Toggle - Always visible */}
           <div className="flex items-center gap-8">
             <button
-              onClick={() => setActiveTab("following")}
+              onClick={() => navigate("/following")}
               className={`text-white transition-all ${
                 activeTab === "following"
                   ? "border-b-2 border-white pb-1"
@@ -93,7 +97,7 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
               Following
             </button>
             <button
-              onClick={() => setActiveTab("discover")}
+              onClick={() => navigate("/")}
               className={`text-white transition-all ${
                 activeTab === "discover"
                   ? "border-b-2 border-white pb-1"
@@ -132,7 +136,7 @@ export function NavigationBar({ onSearchChange, onFilterClick, searchQuery = "" 
               <MessageCircle className="w-5 h-5" />
             </Link>
             {isAuthenticated ? (
-              <div ref={userMenuRef} className="relative">
+              <div ref={userMenuRef} className="relative flex items-center">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="text-white hover:opacity-70 transition-opacity"

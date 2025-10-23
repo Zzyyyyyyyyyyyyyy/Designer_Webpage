@@ -113,9 +113,9 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Gallery Section - FULL BLEED COVER (do not change) */}
           <div className="w-full lg:flex-1 flex-shrink-0">
-            {/* Main Media Container - Fixed height with cover */}
+            {/* Main Media Container - Fixed height with contain */}
             <div
-              className="relative bg-[#111] overflow-hidden group"
+              className="relative bg-[#111] group flex items-center justify-center"
               style={{
                 height: '80vh',
                 minHeight: '560px',
@@ -128,13 +128,12 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
                   className="w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full cursor-zoom-in" onClick={handleImageClick}>
-                  <ImageWithFallback
-                    src={currentMedia.url}
-                    alt={item.caption}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <ImageWithFallback
+                  src={currentMedia.url}
+                  alt={item.caption}
+                  className="max-w-full max-h-full object-contain cursor-zoom-in"
+                  onClick={handleImageClick}
+                />
               )}
 
               {/* Media Navigation Arrows */}

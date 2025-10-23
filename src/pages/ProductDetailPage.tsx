@@ -187,23 +187,24 @@ export function ProductDetailPage() {
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-[3/4] bg-gray-900 rounded-xl overflow-hidden group">
+            <div className="relative w-full h-[600px] bg-gray-900 rounded-xl group flex items-center justify-center">
               <img
                 src={product.images[selectedImage]}
                 alt={product.title}
-                className="w-full h-full object-cover"
+                className="w-auto h-auto max-w-full max-h-full"
+                style={{ objectFit: 'contain' }}
               />
 
               {/* Navigation Arrows */}
               <button
                 onClick={handlePreviousImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={handleNextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-10"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>

@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ItemDetail } from "@/components/ItemDetail";
 import { ComparisonBar, ProductComparison } from "@/components/ProductComparison";
 import { useComparison } from "@/contexts/ComparisonContext";
+import { usePosts } from "@/contexts/PostsContext";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -17,6 +18,7 @@ interface ExtendedFashionPost extends FashionPost {
   details?: string;
   userName?: string;
   isProduct?: boolean;
+  tags?: string[];
 }
 
 // Mock fashion posts data with extended details
@@ -177,14 +179,19 @@ export function FeedPage() {
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   const { comparisonList, removeFromComparison, clearComparison } = useComparison();
+  const { posts: userPosts } = usePosts();
 
   useEffect(() => {
     // Simulate initial loading
     setTimeout(() => {
-      setPosts(mockPosts);
+      // Sort user posts by createdAt (most recent first)
+      const sortedUserPosts = [...userPosts].sort((a, b) => b.createdAt - a.createdAt);
+      // User posts first (most recent), then mock posts
+      const allPosts = [...sortedUserPosts, ...mockPosts];
+      setPosts(allPosts);
       setIsLoading(false);
     }, 800);
-  }, []);
+  }, [userPosts]);
 
   useEffect(() => {
     if (!isSearchActive) {
@@ -207,6 +214,14 @@ export function FeedPage() {
       // Filter by selected categories
       if (selectedFilters.length > 0) {
         results = results.filter((post) => {
+          // For user posts with tags array defined
+          if (post.tags !== undefined) {
+            // Only match if tags array has matching items
+            return post.tags.length > 0 && selectedFilters.some((filter) =>
+              post.tags!.includes(filter)
+            );
+          }
+          // For mock posts without tags array (caption-based filtering)
           const lowerCaption = post.caption.toLowerCase();
           return selectedFilters.some((filter) =>
             lowerCaption.includes(filter.toLowerCase())
@@ -227,6 +242,10 @@ export function FeedPage() {
     if (!active) {
       setSelectedFilters([]);
     }
+    // Close ItemDetail when search is activated
+    if (active && selectedItem) {
+      setSelectedItem(null);
+    }
   };
 
   const handleFilterChange = (filters: string[]) => {
@@ -238,6 +257,10 @@ export function FeedPage() {
 
     if (hasChanges) {
       setIsFilterOpen(false);
+      // Close ItemDetail when filters are applied
+      if (selectedItem) {
+        setSelectedItem(null);
+      }
     }
   };
 

@@ -2,7 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import { ComparisonProvider } from "./contexts/ComparisonContext";
 import { ChatProvider } from "./contexts/ChatContext.optimized";
 import { AuthProvider } from "./contexts/AuthContext";
+import { PostsProvider } from "./contexts/PostsContext";
+import { FollowingProvider } from "./contexts/FollowingContext";
 import { FeedPage } from "./pages/FeedPage";
+import { FollowingPage } from "./pages/FollowingPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { MessagesPage } from "./pages/MessagesPage";
 import { UploadPage } from "./pages/UploadPage";
@@ -16,16 +19,21 @@ export default function App() {
     <AuthProvider>
       <ChatProvider>
         <ComparisonProvider>
-          <Routes>
-            <Route path="/" element={<FeedPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/product/:productId" element={<ProductDetailPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/interests" element={<InterestsPage />} />
-            <Route path="/welcome" element={<WelcomePage />} />
-          </Routes>
+          <PostsProvider>
+            <FollowingProvider>
+              <Routes>
+                <Route path="/" element={<FeedPage />} />
+                <Route path="/following" element={<FollowingPage />} />
+                <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/upload" element={<UploadPage />} />
+                <Route path="/product/:productId" element={<ProductDetailPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/interests" element={<InterestsPage />} />
+                <Route path="/welcome" element={<WelcomePage />} />
+              </Routes>
+            </FollowingProvider>
+          </PostsProvider>
         </ComparisonProvider>
       </ChatProvider>
     </AuthProvider>
