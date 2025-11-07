@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { ComparisonProvider } from "./contexts/ComparisonContext";
+import { CartProvider } from "./contexts/CartContext";
 import { ChatProvider } from "./contexts/ChatContext.optimized";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PostsProvider } from "./contexts/PostsContext";
@@ -19,21 +20,23 @@ export default function App() {
     <AuthProvider>
       <ChatProvider>
         <ComparisonProvider>
-          <PostsProvider>
-            <FollowingProvider>
-              <Routes>
-                <Route path="/" element={<FeedPage />} />
-                <Route path="/following" element={<FollowingPage />} />
-                <Route path="/messages" element={<MessagesPage />} />
-                <Route path="/upload" element={<UploadPage />} />
-                <Route path="/product/:productId" element={<ProductDetailPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route path="/interests" element={<InterestsPage />} />
-                <Route path="/welcome" element={<WelcomePage />} />
-              </Routes>
-            </FollowingProvider>
-          </PostsProvider>
+          <CartProvider>
+            <PostsProvider>
+              <FollowingProvider>
+                <Routes>
+                  <Route path="/" element={<FeedPage />} />
+                  <Route path="/following" element={<FollowingPage />} />
+                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/upload" element={<UploadPage />} />
+                  <Route path="/product/:productId" element={<ProductDetailPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/interests" element={<InterestsPage />} />
+                  <Route path="/welcome" element={<WelcomePage />} />
+                </Routes>
+              </FollowingProvider>
+            </PostsProvider>
+          </CartProvider>
         </ComparisonProvider>
       </ChatProvider>
     </AuthProvider>

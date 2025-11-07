@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Heart, MessageCircle, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Scale, Play } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { FashionPost } from "./MasonryFeed";
+import { DesignerPost } from "@/contexts/FollowingContext";
 import { SizeGuide } from "./SizeGuide";
 import { ShareProduct } from "./ShareProduct";
 import { ProductQA } from "./ProductQA";
 import { useComparison } from "@/contexts/ComparisonContext";
+import { useCart } from "@/contexts/CartContext";
 import { VideoPlayer } from "./VideoPlayer";
 
 interface MediaItem {
@@ -14,30 +16,34 @@ interface MediaItem {
   thumbnail?: string;
 }
 
+// Create a unified type that works with both FashionPost and DesignerPost
+type ItemDetailItem = (FashionPost | DesignerPost) & {
+  images?: string[];
+  videoUrl?: string;
+  price?: string;
+  sizes?: string[];
+  description?: string;
+  details?: string;
+  userName?: string;
+  isProduct?: boolean;
+};
+
 interface ItemDetailProps {
-  item: FashionPost & {
-    images?: string[];
-    videoUrl?: string;
-    price?: string;
-    sizes?: string[];
-    description?: string;
-    details?: string;
-    userName?: string;
-    isProduct?: boolean;
-  };
-  relatedItems: FashionPost[];
+  item: ItemDetailItem;
+  relatedItems: (FashionPost | DesignerPost)[];
   onBack: () => void;
-  onItemClick: (item: FashionPost) => void;
+  onItemClick: (item: FashionPost | DesignerPost) => void;
 }
 
 export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDetailProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
+  const { addToCart } = useCart();
 
   // Build media array (images + video)
   const mediaItems: MediaItem[] = [
@@ -60,11 +66,11 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
     const container = document.getElementById("related-carousel");
     if (container) {
       const scrollAmount = 300;
-      const newPosition = direction === "left" 
-        ? scrollPosition - scrollAmount 
-        : scrollPosition + scrollAmount;
+      const currentScroll = container.scrollLeft;
+      const newPosition = direction === "left"
+        ? currentScroll - scrollAmount
+        : currentScroll + scrollAmount;
       container.scrollTo({ left: newPosition, behavior: "smooth" });
-      setScrollPosition(newPosition);
     }
   };
 
@@ -194,131 +200,138 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
           <div className="w-full lg:flex-1 lg:max-w-[640px] flex-shrink-0">
             <div className="flex flex-col py-4 pr-4 lg:py-6 lg:pr-8">
               {/* Title */}
-              <h1 className="text-white text-2xl lg:text-3xl mb-4">
+              <h1 className="text-white text-2xl lg:text-3xl mb-2">
                 {item.caption}
               </h1>
 
-              {item.isProduct ? (
-                <>
-                  {/* Price */}
-                  {item.price && (
-                    <div className="mb-6">
-                      <p className="text-white text-xl">{item.price}</p>
-                    </div>
-                  )}
-
-                  {/* Size Selector */}
-                  {item.sizes && item.sizes.length > 0 && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="block text-white text-sm uppercase tracking-wider">
-                          Select Size
-                        </label>
-                        <SizeGuide category="clothing" />
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {item.sizes.map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => setSelectedSize(size)}
-                            className={`px-4 py-2 rounded-lg border transition-all ${
-                              selectedSize === size
-                                ? "border-white bg-white text-black font-semibold"
-                                : "border-[#2a2a2a] text-white hover:border-white/50"
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  {item.description && (
-                    <div className="mb-6">
-                      <p className="text-[#b3b3b3] leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* CTA Buttons */}
-                  <div className="flex gap-3 mb-8">
-                    <button className="flex-1 bg-white text-black py-3 px-6 rounded-lg hover:bg-[#e0e0e0] transition-colors">
-                      Add to Bag
-                    </button>
-                    <button
-                      className="px-6 py-3 border border-white text-white rounded-lg hover:bg-white/10 transition-colors"
-                      aria-label="Add to wishlist"
-                    >
-                      <Heart className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const productData = {
-                          id: item.id,
-                          title: item.caption,
-                          imageUrl: item.imageUrl,
-                          price: item.price || "",
-                          sizes: item.sizes,
-                          description: item.description,
-                          category: "Fashion",
-                        };
-                        if (isInComparison(item.id)) {
-                          removeFromComparison(item.id);
-                        } else {
-                          addToComparison(productData);
-                        }
-                      }}
-                      className={`px-6 py-3 border rounded-lg transition-colors ${
-                        isInComparison(item.id)
-                          ? "border-white bg-white text-black"
-                          : "border-white text-white hover:bg-white/10"
-                      }`}
-                      aria-label="Add to comparison"
-                    >
-                      <Scale className="w-5 h-5" />
-                    </button>
-                    <ShareProduct productTitle={item.caption} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* User Info */}
-                  {item.userName && (
-                    <div className="mb-4">
-                      <p className="text-white">
-                        by <span className="font-semibold">{item.userName}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Caption */}
-                  <div className="mb-6">
-                    <p className="text-[#b3b3b3] leading-relaxed">
-                      {item.caption}
-                    </p>
-                  </div>
-
-                  {/* Social Actions */}
-                  <div className="flex gap-3 mb-8">
-                    <button
-                      onClick={() => setIsLiked(!isLiked)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] rounded-full hover:bg-[#3a3a3a] transition-colors"
-                    >
-                      <Heart
-                        className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`}
-                      />
-                      <span>Like</span>
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] rounded-full hover:bg-[#3a3a3a] transition-colors">
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Comment</span>
-                    </button>
-                  </div>
-                </>
+              {/* Designer Name */}
+              {"designerName" in item && item.designerName && (
+                <div className="mb-4">
+                  <p className="text-gray-400 text-sm">
+                    by <span className="font-medium text-white">{item.designerName}</span>
+                  </p>
+                </div>
               )}
+
+              {/* Price - Always show */}
+              <div className="mb-6">
+                <p className="text-white text-xl">{item.price || "$0"}</p>
+              </div>
+
+              {/* Size Selector - Always show */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-white text-sm uppercase tracking-wider">
+                    Select Size
+                  </label>
+                  <SizeGuide category="clothing" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(item.sizes || ["XS", "S", "M", "L", "XL"]).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-2 rounded-lg border transition-all ${
+                        selectedSize === size
+                          ? "border-white bg-white text-black font-semibold"
+                          : "border-[#2a2a2a] text-white hover:border-white/50"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div className="mb-6">
+                <label className="block text-white text-sm uppercase tracking-wider mb-3">
+                  Quantity
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-4 py-2 border border-[#2a2a2a] text-white rounded-lg hover:border-white/50 transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="text-white font-medium w-12 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-4 py-2 border border-[#2a2a2a] text-white rounded-lg hover:border-white/50 transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
+              {item.description && (
+                <div className="mb-6">
+                  <p className="text-[#b3b3b3] leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              )}
+
+              {/* CTA Buttons - Always show */}
+              <div className="flex gap-3 mb-8">
+                <button
+                  onClick={() => {
+                    if (!selectedSize) {
+                      alert("Please select a size");
+                      return;
+                    }
+                    addToCart({
+                      productId: item.id,
+                      title: item.caption,
+                      imageUrl: item.imageUrl,
+                      price: item.price || "$0",
+                      size: selectedSize,
+                      quantity,
+                      designerName: "designerName" in item ? item.designerName : undefined,
+                      designerUsername: "designerUsername" in item ? item.designerUsername : undefined,
+                    });
+                    alert(`Added ${quantity} item(s) to cart!`);
+                  }}
+                  className="flex-1 bg-white text-black py-3 px-6 rounded-lg hover:bg-[#e0e0e0] transition-colors font-semibold"
+                >
+                  Add to Cart
+                </button>
+                <button
+                  className="px-6 py-3 border border-white text-white rounded-lg hover:bg-white/10 transition-colors"
+                  aria-label="Add to wishlist"
+                >
+                  <Heart className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    const productData = {
+                      id: item.id,
+                      title: item.caption,
+                      imageUrl: item.imageUrl,
+                      price: item.price || "",
+                      sizes: item.sizes,
+                      description: item.description,
+                      category: "Fashion",
+                    };
+                    if (isInComparison(item.id)) {
+                      removeFromComparison(item.id);
+                    } else {
+                      addToComparison(productData);
+                    }
+                  }}
+                  className={`px-6 py-3 border rounded-lg transition-colors ${
+                    isInComparison(item.id)
+                      ? "border-white bg-white text-black"
+                      : "border-white text-white hover:bg-white/10"
+                  }`}
+                  aria-label="Add to comparison"
+                >
+                  <Scale className="w-5 h-5" />
+                </button>
+                <ShareProduct productTitle={item.caption} />
+              </div>
 
               {/* Details Section */}
               {item.details && (
@@ -346,11 +359,9 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
         </div>
 
         {/* Product Q&A Section - Full width section */}
-        {item.isProduct && (
-          <div className="w-full border-t border-[#2a2a2a] pt-12 mt-16">
-            <ProductQA productId={item.id} />
-          </div>
-        )}
+        <div className="w-full border-t border-[#2a2a2a] pt-12 mt-16">
+          <ProductQA productId={item.id} />
+        </div>
 
         {/* Related Items - Full width section */}
         {relatedItems.length > 0 && (

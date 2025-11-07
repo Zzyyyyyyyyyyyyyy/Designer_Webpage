@@ -119,37 +119,49 @@ export function FollowingProvider({ children }: { children: ReactNode }) {
 
   // Load followed designers from localStorage on mount
   useEffect(() => {
-    const storedFollowing = localStorage.getItem("designer_following");
-    if (storedFollowing) {
-      try {
-        const parsed = JSON.parse(storedFollowing);
-        setFollowedDesignerIds(new Set(parsed));
-      } catch (error) {
-        console.error("Failed to parse followed designers:", error);
-        localStorage.removeItem("designer_following");
+    try {
+      const storedFollowing = localStorage.getItem("designer_following");
+      if (storedFollowing) {
+        try {
+          const parsed = JSON.parse(storedFollowing);
+          setFollowedDesignerIds(new Set(parsed));
+        } catch (error) {
+          console.error("Failed to parse followed designers:", error);
+          localStorage.removeItem("designer_following");
+        }
+      } else {
+        // Initialize with a few followed designers for demo purposes
+        const defaultFollowing = ["designer-1", "designer-3", "designer-5"];
+        setFollowedDesignerIds(new Set(defaultFollowing));
+        localStorage.setItem("designer_following", JSON.stringify(defaultFollowing));
       }
-    } else {
-      // Initialize with a few followed designers for demo purposes
+
+      // Load last visit timestamps
+      const storedTimestamps = localStorage.getItem("designer_last_visits");
+      if (storedTimestamps) {
+        try {
+          setLastVisitTimestamps(JSON.parse(storedTimestamps));
+        } catch (error) {
+          console.error("Failed to parse timestamps:", error);
+        }
+      }
+    } catch (error) {
+      // localStorage not available (e.g., Safari private browsing)
+      console.warn("localStorage not available:", error);
+      // Use default values
       const defaultFollowing = ["designer-1", "designer-3", "designer-5"];
       setFollowedDesignerIds(new Set(defaultFollowing));
-      localStorage.setItem("designer_following", JSON.stringify(defaultFollowing));
-    }
-
-    // Load last visit timestamps
-    const storedTimestamps = localStorage.getItem("designer_last_visits");
-    if (storedTimestamps) {
-      try {
-        setLastVisitTimestamps(JSON.parse(storedTimestamps));
-      } catch (error) {
-        console.error("Failed to parse timestamps:", error);
-      }
     }
   }, []);
 
   // Save followed designers to localStorage whenever they change
   useEffect(() => {
     if (followedDesignerIds.size > 0) {
-      localStorage.setItem("designer_following", JSON.stringify([...followedDesignerIds]));
+      try {
+        localStorage.setItem("designer_following", JSON.stringify([...followedDesignerIds]));
+      } catch (error) {
+        console.warn("Failed to save to localStorage:", error);
+      }
     }
   }, [followedDesignerIds]);
 

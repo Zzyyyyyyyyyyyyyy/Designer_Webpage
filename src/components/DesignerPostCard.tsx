@@ -1,5 +1,5 @@
 import { Heart, Bookmark } from "lucide-react";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface DesignerPostCardProps {
@@ -36,7 +36,7 @@ function formatTimeAgo(timestamp: number): string {
   return "just now";
 }
 
-export function DesignerPostCard({
+export const DesignerPostCard = memo(function DesignerPostCard({
   imageUrl,
   caption,
   id,
@@ -74,6 +74,7 @@ export function DesignerPostCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      data-post-id={id}
     >
       {/* Designer Header */}
       <div className="flex items-center gap-2 mb-3 px-1">
@@ -133,24 +134,18 @@ export function DesignerPostCard({
       <div className="pt-2 pb-1 px-1">
         <p className="text-white text-sm line-clamp-2 opacity-90 mb-2">{caption}</p>
 
-        {/* Stats */}
-        {(likes > 0 || saves > 0) && (
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            {likes > 0 && (
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                {likes.toLocaleString()}
-              </span>
-            )}
-            {saves > 0 && (
-              <span className="flex items-center gap-1">
-                <Bookmark className="w-3 h-3" />
-                {saves.toLocaleString()}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Stats - Always show */}
+        <div className="flex items-center gap-4 text-sm text-gray-400">
+          <span className="flex items-center gap-1.5">
+            <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+            <span className="font-medium">{likes.toLocaleString()}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-white text-white' : ''}`} />
+            <span className="font-medium">{saves.toLocaleString()}</span>
+          </span>
+        </div>
       </div>
     </div>
   );
-}
+});
