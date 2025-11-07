@@ -5,6 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/Designer_Webpage/', // GitHub Pages 仓库名称
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
