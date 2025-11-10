@@ -327,7 +327,7 @@ export function SettingsPage() {
                   <Shield className="w-5 h-5" />
                   Two-Factor Authentication
                 </h3>
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                   <div>
                     <p className="text-white font-medium">Enable 2FA</p>
                     <p className="text-gray-400 text-sm">
@@ -390,15 +390,15 @@ export function SettingsPage() {
                       setProfileVisibility(value)
                     }
                   >
-                    <SelectTrigger className="bg-transparent border-white/20 text-white">
+                    <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                      <SelectItem value="public" className="text-white hover:bg-white/10">Public - Anyone can view</SelectItem>
-                      <SelectItem value="followers" className="text-white hover:bg-white/10">
+                      <SelectItem value="public" className="text-white">Public - Anyone can view</SelectItem>
+                      <SelectItem value="followers" className="text-white">
                         Followers Only - Only your followers
                       </SelectItem>
-                      <SelectItem value="private" className="text-white hover:bg-white/10">
+                      <SelectItem value="private" className="text-white">
                         Private - Only you
                       </SelectItem>
                     </SelectContent>
@@ -408,7 +408,7 @@ export function SettingsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                   <div>
                     <p className="text-white font-medium">Show Email Address</p>
                     <p className="text-gray-400 text-sm">
@@ -418,7 +418,7 @@ export function SettingsPage() {
                   <Switch checked={showEmail} onCheckedChange={setShowEmail} />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                   <div>
                     <p className="text-white font-medium">Show Statistics</p>
                     <p className="text-gray-400 text-sm">
@@ -428,7 +428,7 @@ export function SettingsPage() {
                   <Switch checked={showStats} onCheckedChange={setShowStats} />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                   <div>
                     <p className="text-white font-medium">
                       Search Engine Indexing
@@ -453,7 +453,7 @@ export function SettingsPage() {
                   Email Notifications
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">New Followers</p>
                       <p className="text-gray-400 text-sm">
@@ -471,7 +471,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">Likes</p>
                       <p className="text-gray-400 text-sm">
@@ -489,7 +489,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">Comments</p>
                       <p className="text-gray-400 text-sm">
@@ -507,7 +507,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">Messages</p>
                       <p className="text-gray-400 text-sm">
@@ -525,7 +525,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">System Updates</p>
                       <p className="text-gray-400 text-sm">
@@ -543,7 +543,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">Marketing</p>
                       <p className="text-gray-400 text-sm">
@@ -577,13 +577,13 @@ export function SettingsPage() {
                     setNotificationFrequency(value)
                   }
                 >
-                  <SelectTrigger className="bg-transparent border-white/20 text-white">
+                  <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                    <SelectItem value="realtime" className="text-white hover:bg-white/10">Real-time - As they happen</SelectItem>
-                    <SelectItem value="daily" className="text-white hover:bg-white/10">Daily Digest - Once per day</SelectItem>
-                    <SelectItem value="weekly" className="text-white hover:bg-white/10">Weekly Summary - Once per week</SelectItem>
+                    <SelectItem value="realtime" className="text-white">Real-time - As they happen</SelectItem>
+                    <SelectItem value="daily" className="text-white">Daily Digest - Once per day</SelectItem>
+                    <SelectItem value="weekly" className="text-white">Weekly Summary - Once per week</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-gray-400 text-xs mt-2">
@@ -605,15 +605,15 @@ export function SettingsPage() {
                 <div>
                   <Label className="text-white/60 mb-2 block">Language</Label>
                   <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="bg-transparent border-white/20 text-white">
+                    <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                      <SelectItem value="en" className="text-white hover:bg-white/10">English</SelectItem>
-                      <SelectItem value="es" className="text-white hover:bg-white/10">Español</SelectItem>
-                      <SelectItem value="fr" className="text-white hover:bg-white/10">Français</SelectItem>
-                      <SelectItem value="de" className="text-white hover:bg-white/10">Deutsch</SelectItem>
-                      <SelectItem value="zh" className="text-white hover:bg-white/10">中文</SelectItem>
+                      <SelectItem value="en" className="text-white">English</SelectItem>
+                      <SelectItem value="es" className="text-white">Español</SelectItem>
+                      <SelectItem value="fr" className="text-white">Français</SelectItem>
+                      <SelectItem value="de" className="text-white">Deutsch</SelectItem>
+                      <SelectItem value="zh" className="text-white">中文</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -622,15 +622,15 @@ export function SettingsPage() {
                   <div>
                     <Label className="text-white/60 mb-2 block">Timezone</Label>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger className="bg-transparent border-white/20 text-white">
+                      <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                        <SelectItem value="UTC" className="text-white hover:bg-white/10">UTC</SelectItem>
-                        <SelectItem value="America/New_York" className="text-white hover:bg-white/10">Eastern Time</SelectItem>
-                        <SelectItem value="America/Los_Angeles" className="text-white hover:bg-white/10">Pacific Time</SelectItem>
-                        <SelectItem value="Europe/London" className="text-white hover:bg-white/10">London</SelectItem>
-                        <SelectItem value="Asia/Tokyo" className="text-white hover:bg-white/10">Tokyo</SelectItem>
+                        <SelectItem value="UTC" className="text-white">UTC</SelectItem>
+                        <SelectItem value="America/New_York" className="text-white">Eastern Time</SelectItem>
+                        <SelectItem value="America/Los_Angeles" className="text-white">Pacific Time</SelectItem>
+                        <SelectItem value="Europe/London" className="text-white">London</SelectItem>
+                        <SelectItem value="Asia/Tokyo" className="text-white">Tokyo</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -638,14 +638,14 @@ export function SettingsPage() {
                   <div>
                     <Label className="text-white/60 mb-2 block">Currency</Label>
                     <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger className="bg-transparent border-white/20 text-white">
+                      <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                        <SelectItem value="USD" className="text-white hover:bg-white/10">USD ($)</SelectItem>
-                        <SelectItem value="EUR" className="text-white hover:bg-white/10">EUR (€)</SelectItem>
-                        <SelectItem value="GBP" className="text-white hover:bg-white/10">GBP (£)</SelectItem>
-                        <SelectItem value="JPY" className="text-white hover:bg-white/10">JPY (¥)</SelectItem>
+                        <SelectItem value="USD" className="text-white">USD ($)</SelectItem>
+                        <SelectItem value="EUR" className="text-white">EUR (€)</SelectItem>
+                        <SelectItem value="GBP" className="text-white">GBP (£)</SelectItem>
+                        <SelectItem value="JPY" className="text-white">JPY (¥)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -654,13 +654,13 @@ export function SettingsPage() {
                 <div>
                   <Label className="text-white/60 mb-2 block">Theme</Label>
                   <Select value={theme} onValueChange={(value: "light" | "dark" | "auto") => setTheme(value)}>
-                    <SelectTrigger className="bg-transparent border-white/20 text-white">
+                    <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                      <SelectItem value="light" className="text-white hover:bg-white/10">Light</SelectItem>
-                      <SelectItem value="dark" className="text-white hover:bg-white/10">Dark</SelectItem>
-                      <SelectItem value="auto" className="text-white hover:bg-white/10">Auto (System)</SelectItem>
+                      <SelectItem value="light" className="text-white">Light</SelectItem>
+                      <SelectItem value="dark" className="text-white">Dark</SelectItem>
+                      <SelectItem value="auto" className="text-white">Auto (System)</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-gray-400 text-xs mt-1">
@@ -671,12 +671,12 @@ export function SettingsPage() {
                 <div>
                   <Label className="text-white/60 mb-2 block">View Mode</Label>
                   <Select value={viewMode} onValueChange={(value: "grid" | "list") => setViewMode(value)}>
-                    <SelectTrigger className="bg-transparent border-white/20 text-white">
+                    <SelectTrigger className="bg-transparent border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/30 shadow-xl">
-                      <SelectItem value="grid" className="text-white hover:bg-white/10">Grid View</SelectItem>
-                      <SelectItem value="list" className="text-white hover:bg-white/10">List View</SelectItem>
+                      <SelectItem value="grid" className="text-white">Grid View</SelectItem>
+                      <SelectItem value="list" className="text-white">List View</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-gray-400 text-xs mt-1">

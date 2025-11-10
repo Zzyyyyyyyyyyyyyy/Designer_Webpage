@@ -391,7 +391,7 @@ export function AccountPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10 transition-colors">
                     <div>
                       <p className="text-white font-medium">
                         Available for work
