@@ -14,6 +14,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { InterestsPage } from "./pages/InterestsPage";
 import { WelcomePage } from "./pages/WelcomePage";
+import { AccountPage } from "./pages/AccountPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
                   <Route path="/messages" element={<MessagesPage />} />
                   <Route path="/upload" element={<UploadPage />} />
                   <Route path="/product/:productId" element={<ProductDetailPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignupPage />} />
                   <Route path="/interests" element={<InterestsPage />} />

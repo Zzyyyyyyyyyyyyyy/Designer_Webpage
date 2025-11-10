@@ -6,6 +6,7 @@ import {
   X,
   SlidersHorizontal,
   ShoppingBag,
+  Settings,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -185,21 +186,41 @@ export function NavigationBar({
                     <User className="w-5 h-5" />
                   </button>
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-black border border-white/20 shadow-lg">
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-black border border-white/20 shadow-lg rounded-lg overflow-hidden">
                       <div className="p-4 border-b border-white/10">
                         <p className="text-white text-sm font-medium truncate">
                           {user?.email}
                         </p>
                         <p className="text-gray-500 text-xs mt-1">
-                          {user?.interests.length || 0} interests selected
+                          {user?.profile.fullName || "Designer"}
                         </p>
                       </div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-3 text-white text-sm hover:bg-white/5 transition-colors"
-                      >
-                        Log out
-                      </button>
+                      <div className="py-2">
+                        <Link
+                          to="/account"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="w-full text-left px-4 py-2 text-white text-sm hover:bg-white/5 transition-colors flex items-center gap-2"
+                        >
+                          <User className="w-4 h-4" />
+                          Account Profile
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="w-full text-left px-4 py-2 text-white text-sm hover:bg-white/5 transition-colors flex items-center gap-2"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Settings
+                        </Link>
+                      </div>
+                      <div className="border-t border-white/10">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-3 text-white text-sm hover:bg-white/5 transition-colors"
+                        >
+                          Log out
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
