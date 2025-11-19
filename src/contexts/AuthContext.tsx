@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 // User profile interfaces
 interface SocialLinks {
@@ -92,6 +94,7 @@ interface UserSettings {
 }
 
 interface User {
+  id: string;
   email: string;
   interests: string[];
   profile: UserProfile;
@@ -104,10 +107,10 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  saveInterests: (interests: string[]) => void;
-  updateProfile: (profile: Partial<UserProfile>) => void;
-  updateSettings: (settings: Partial<UserSettings>) => void;
+  logout: () => Promise<void>;
+  saveInterests: (interests: string[]) => Promise<void>;
+  updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -159,104 +162,229 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch user data from Supabase
+  const fetchUserData = async (supabaseUser: SupabaseUser) => {
+    try {
+      // Fetch user profile
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", supabaseUser.id)
+        .single();
+
+      if (userError && userError.code !== "PGRST116") throw userError;
+
+      // Fetch user settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("user_id", supabaseUser.id)
+        .single();
+
+      if (settingsError && settingsError.code !== "PGRST116") throw settingsError;
+
+      // Combine data
+      const profile: UserProfile = {
+        fullName: userData?.full_name,
+        username: userData?.username,
+        avatar: userData?.avatar_url,
+        profession: userData?.profession,
+        bio: userData?.bio,
+        about: userData?.about,
+        location: userData?.location,
+        skills: userData?.skills || [],
+        experience: userData?.experience || [],
+        education: userData?.education || [],
+        certifications: userData?.certifications || [],
+        services: userData?.services,
+        priceRange: userData?.price_range,
+        isAvailable: userData?.is_available ?? true,
+        socialLinks: userData?.social_links || {},
+        followers: userData?.followers_count || 0,
+        following: userData?.following_count || 0,
+        likes: 0,
+      };
+
+      const settings: UserSettings = settingsData
+        ? {
+            profileVisibility: settingsData.profile_visibility || "public",
+            showEmail: settingsData.show_email ?? false,
+            showStats: settingsData.show_stats ?? true,
+            indexable: settingsData.indexable ?? true,
+            emailNotifications: settingsData.email_notifications || createDefaultSettings().emailNotifications,
+            pushNotifications: settingsData.push_notifications || createDefaultSettings().pushNotifications,
+            notificationFrequency: settingsData.notification_frequency || "realtime",
+            language: settingsData.language || "en",
+            timezone: settingsData.timezone || "UTC",
+            currency: settingsData.currency || "USD",
+            theme: settingsData.theme || "dark",
+            viewMode: settingsData.view_mode || "grid",
+            twoFactorEnabled: settingsData.two_factor_enabled ?? false,
+          }
+        : createDefaultSettings();
+
+      setUser({
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        interests: userData?.interests || [],
+        profile,
+        settings,
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setUser(null);
+    }
+  };
+
   // Check for existing session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("designer_user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        // Ensure user has profile and settings with defaults
-        setUser({
-          ...parsedUser,
-          profile: { ...createDefaultProfile(), ...parsedUser.profile },
-          settings: { ...createDefaultSettings(), ...parsedUser.settings },
-        });
-      } catch (error) {
-        console.error("Failed to parse stored user:", error);
-        localStorage.removeItem("designer_user");
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserData(session.user);
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchUserData(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Save user to localStorage whenever it changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("designer_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("designer_user");
+  const signup = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) throw error;
+
+    // Create user profile
+    if (data.user) {
+      await supabase.from("users").insert({
+        id: data.user.id,
+        email: data.user.email,
+        interests: [],
+      });
+
+      // Create user settings
+      await supabase.from("user_settings").insert({
+        user_id: data.user.id,
+      });
     }
-  }, [user]);
+  };
 
   const login = async (email: string, password: string) => {
-    // Simulate API call
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // In a real app, this would validate credentials with a backend
-        const newUser: User = {
-          email,
-          interests: [],
-          profile: createDefaultProfile(),
-          settings: createDefaultSettings(),
-        };
-        setUser(newUser);
-        resolve();
-      }, 500);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+    if (error) throw error;
   };
 
-  const signup = async (email: string, password: string) => {
-    // Simulate API call
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // In a real app, this would create a new user in the backend
-        const newUser: User = {
-          email,
-          interests: [],
-          profile: createDefaultProfile(),
-          settings: createDefaultSettings(),
-        };
-        setUser(newUser);
-        resolve();
-      }, 500);
-    });
-  };
-
-  const logout = () => {
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
   };
 
-  const saveInterests = (interests: string[]) => {
-    if (user) {
-      setUser({
-        ...user,
-        interests,
-      });
-    }
+  const saveInterests = async (interests: string[]) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("users")
+      .update({ interests })
+      .eq("id", user.id);
+
+    if (error) throw error;
+
+    setUser({
+      ...user,
+      interests,
+    });
   };
 
-  const updateProfile = (profileUpdates: Partial<UserProfile>) => {
-    if (user) {
-      setUser({
-        ...user,
-        profile: {
-          ...user.profile,
-          ...profileUpdates,
-        },
-      });
-    }
+  const updateProfile = async (profileUpdates: Partial<UserProfile>) => {
+    if (!user) return;
+
+    // Map frontend fields to database fields
+    const dbUpdates: any = {};
+    if (profileUpdates.fullName !== undefined) dbUpdates.full_name = profileUpdates.fullName;
+    if (profileUpdates.username !== undefined) dbUpdates.username = profileUpdates.username;
+    if (profileUpdates.avatar !== undefined) dbUpdates.avatar_url = profileUpdates.avatar;
+    if (profileUpdates.profession !== undefined) dbUpdates.profession = profileUpdates.profession;
+    if (profileUpdates.bio !== undefined) dbUpdates.bio = profileUpdates.bio;
+    if (profileUpdates.about !== undefined) dbUpdates.about = profileUpdates.about;
+    if (profileUpdates.location !== undefined) dbUpdates.location = profileUpdates.location;
+    if (profileUpdates.skills !== undefined) dbUpdates.skills = profileUpdates.skills;
+    if (profileUpdates.experience !== undefined) dbUpdates.experience = profileUpdates.experience;
+    if (profileUpdates.education !== undefined) dbUpdates.education = profileUpdates.education;
+    if (profileUpdates.certifications !== undefined) dbUpdates.certifications = profileUpdates.certifications;
+    if (profileUpdates.services !== undefined) dbUpdates.services = profileUpdates.services;
+    if (profileUpdates.priceRange !== undefined) dbUpdates.price_range = profileUpdates.priceRange;
+    if (profileUpdates.isAvailable !== undefined) dbUpdates.is_available = profileUpdates.isAvailable;
+    if (profileUpdates.socialLinks !== undefined) dbUpdates.social_links = profileUpdates.socialLinks;
+
+    const { error } = await supabase
+      .from("users")
+      .update(dbUpdates)
+      .eq("id", user.id);
+
+    if (error) throw error;
+
+    setUser({
+      ...user,
+      profile: {
+        ...user.profile,
+        ...profileUpdates,
+      },
+    });
   };
 
-  const updateSettings = (settingsUpdates: Partial<UserSettings>) => {
-    if (user) {
-      setUser({
-        ...user,
-        settings: {
-          ...user.settings,
-          ...settingsUpdates,
-        },
-      });
-    }
+  const updateSettings = async (settingsUpdates: Partial<UserSettings>) => {
+    if (!user) return;
+
+    // Map frontend fields to database fields
+    const dbUpdates: any = {};
+    if (settingsUpdates.profileVisibility !== undefined)
+      dbUpdates.profile_visibility = settingsUpdates.profileVisibility;
+    if (settingsUpdates.showEmail !== undefined) dbUpdates.show_email = settingsUpdates.showEmail;
+    if (settingsUpdates.showStats !== undefined) dbUpdates.show_stats = settingsUpdates.showStats;
+    if (settingsUpdates.indexable !== undefined) dbUpdates.indexable = settingsUpdates.indexable;
+    if (settingsUpdates.emailNotifications !== undefined)
+      dbUpdates.email_notifications = settingsUpdates.emailNotifications;
+    if (settingsUpdates.pushNotifications !== undefined)
+      dbUpdates.push_notifications = settingsUpdates.pushNotifications;
+    if (settingsUpdates.notificationFrequency !== undefined)
+      dbUpdates.notification_frequency = settingsUpdates.notificationFrequency;
+    if (settingsUpdates.language !== undefined) dbUpdates.language = settingsUpdates.language;
+    if (settingsUpdates.timezone !== undefined) dbUpdates.timezone = settingsUpdates.timezone;
+    if (settingsUpdates.currency !== undefined) dbUpdates.currency = settingsUpdates.currency;
+    if (settingsUpdates.theme !== undefined) dbUpdates.theme = settingsUpdates.theme;
+    if (settingsUpdates.viewMode !== undefined) dbUpdates.view_mode = settingsUpdates.viewMode;
+    if (settingsUpdates.twoFactorEnabled !== undefined)
+      dbUpdates.two_factor_enabled = settingsUpdates.twoFactorEnabled;
+
+    const { error } = await supabase
+      .from("user_settings")
+      .update(dbUpdates)
+      .eq("user_id", user.id);
+
+    if (error) throw error;
+
+    setUser({
+      ...user,
+      settings: {
+        ...user.settings,
+        ...settingsUpdates,
+      },
+    });
   };
 
   const value: AuthContextType = {

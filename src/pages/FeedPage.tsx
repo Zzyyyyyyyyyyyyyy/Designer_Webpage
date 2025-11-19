@@ -321,9 +321,8 @@ export function FeedPage() {
     setTimeout(() => {
       // Sort user posts by createdAt (most recent first)
       const sortedUserPosts = [...userPosts].sort((a, b) => b.createdAt - a.createdAt);
-      // User posts first (most recent), then mock posts
-      const allPosts = [...sortedUserPosts, ...mockPosts];
-      setPosts(allPosts);
+      // Use only real Supabase posts (no mock data)
+      setPosts(sortedUserPosts);
       setIsLoading(false);
     }, 800);
   }, [userPosts]);

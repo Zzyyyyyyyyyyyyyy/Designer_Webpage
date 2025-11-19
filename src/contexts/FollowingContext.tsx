@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "./AuthContext";
 
 // Designer interface
 export interface Designer {
@@ -51,130 +53,102 @@ const FollowingContext = createContext<FollowingContextType | undefined>(undefin
 
 export function FollowingProvider({ children }: { children: ReactNode }) {
   const [followedDesignerIds, setFollowedDesignerIds] = useState<Set<string>>(new Set());
+  const [allDesigners, setAllDesigners] = useState<Designer[]>([]);
   const [lastVisitTimestamps, setLastVisitTimestamps] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Mock designers data
-  const allDesigners: Designer[] = [
-    {
-      id: "designer-1",
-      name: "Elena Rossi",
-      username: "elenarossi",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-      bio: "Minimalist fashion designer based in Milan. Creating timeless pieces for the modern wardrobe.",
-      followerCount: 245000,
-      postCount: 432,
-      isVerified: true,
-    },
-    {
-      id: "designer-2",
-      name: "Marcus Chen",
-      username: "marcuschen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-      bio: "Streetwear architect. Blending urban culture with high fashion.",
-      followerCount: 189000,
-      postCount: 267,
-      isVerified: true,
-    },
-    {
-      id: "designer-3",
-      name: "Sofia Laurent",
-      username: "sofialaurent",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-      bio: "Parisian couture designer. Elegance meets contemporary style.",
-      followerCount: 312000,
-      postCount: 589,
-      isVerified: true,
-    },
-    {
-      id: "designer-4",
-      name: "Kai Nakamura",
-      username: "kainakamura",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
-      bio: "Japanese avant-garde fashion. Exploring the intersection of tradition and innovation.",
-      followerCount: 156000,
-      postCount: 198,
-      isVerified: true,
-    },
-    {
-      id: "designer-5",
-      name: "Amara Johnson",
-      username: "amarajohnson",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
-      bio: "Sustainable fashion advocate. Creating eco-conscious designs that inspire.",
-      followerCount: 278000,
-      postCount: 445,
-      isVerified: true,
-    },
-    {
-      id: "designer-6",
-      name: "Lucas Schmidt",
-      username: "lucasschmidt",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop",
-      bio: "Berlin-based designer. Bold patterns and experimental silhouettes.",
-      followerCount: 134000,
-      postCount: 312,
-      isVerified: false,
-    },
-  ];
+  // Fetch all designers from Supabase
+  const fetchDesigners = async () => {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, username, full_name, bio, avatar_url, followers_count, posts_count, is_verified")
+      .order("followers_count", { ascending: false });
 
-  // Load followed designers from localStorage on mount
-  useEffect(() => {
-    try {
-      const storedFollowing = localStorage.getItem("designer_following");
-      if (storedFollowing) {
-        try {
-          const parsed = JSON.parse(storedFollowing);
-          setFollowedDesignerIds(new Set(parsed));
-        } catch (error) {
-          console.error("Failed to parse followed designers:", error);
-          localStorage.removeItem("designer_following");
-        }
-      } else {
-        // Initialize with a few followed designers for demo purposes
-        const defaultFollowing = ["designer-1", "designer-3", "designer-5"];
-        setFollowedDesignerIds(new Set(defaultFollowing));
-        localStorage.setItem("designer_following", JSON.stringify(defaultFollowing));
-      }
-
-      // Load last visit timestamps
-      const storedTimestamps = localStorage.getItem("designer_last_visits");
-      if (storedTimestamps) {
-        try {
-          setLastVisitTimestamps(JSON.parse(storedTimestamps));
-        } catch (error) {
-          console.error("Failed to parse timestamps:", error);
-        }
-      }
-    } catch (error) {
-      // localStorage not available (e.g., Safari private browsing)
-      console.warn("localStorage not available:", error);
-      // Use default values
-      const defaultFollowing = ["designer-1", "designer-3", "designer-5"];
-      setFollowedDesignerIds(new Set(defaultFollowing));
+    if (error) {
+      console.error("Error fetching designers:", error);
+    } else if (data) {
+      const formattedDesigners = data.map((designer: any) => ({
+        id: designer.id,
+        name: designer.full_name || designer.username || "Unknown",
+        username: designer.username || "unknown",
+        avatar: designer.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+        bio: designer.bio || "",
+        followerCount: designer.followers_count || 0,
+        postCount: designer.posts_count || 0,
+        isVerified: designer.is_verified || false,
+      }));
+      setAllDesigners(formattedDesigners);
     }
-  }, []);
-
-  // Save followed designers to localStorage whenever they change
-  useEffect(() => {
-    if (followedDesignerIds.size > 0) {
-      try {
-        localStorage.setItem("designer_following", JSON.stringify([...followedDesignerIds]));
-      } catch (error) {
-        console.warn("Failed to save to localStorage:", error);
-      }
-    }
-  }, [followedDesignerIds]);
-
-  const followDesigner = (designerId: string) => {
-    setFollowedDesignerIds((prev) => new Set([...prev, designerId]));
   };
 
-  const unfollowDesigner = (designerId: string) => {
-    setFollowedDesignerIds((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(designerId);
-      return newSet;
+  // Fetch followed designers from Supabase
+  const fetchFollows = async () => {
+    if (!user) {
+      setFollowedDesignerIds(new Set());
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", user.id);
+
+    if (error) {
+      console.error("Error fetching follows:", error);
+    } else if (data) {
+      const followedIds = data.map((follow: any) => follow.following_id);
+      setFollowedDesignerIds(new Set(followedIds));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchDesigners();
+  }, []);
+
+  useEffect(() => {
+    fetchFollows();
+  }, [user]);
+
+  const followDesigner = async (designerId: string) => {
+    if (!user) {
+      console.error("Must be authenticated to follow designers");
+      return;
+    }
+
+    const { error } = await supabase.from("follows").insert({
+      follower_id: user.id,
+      following_id: designerId,
     });
+
+    if (error && error.code !== "23505") {
+      // Ignore duplicate errors
+      console.error("Error following designer:", error);
+    } else {
+      setFollowedDesignerIds((prev) => new Set([...prev, designerId]));
+    }
+  };
+
+  const unfollowDesigner = async (designerId: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("follows")
+      .delete()
+      .eq("follower_id", user.id)
+      .eq("following_id", designerId);
+
+    if (error) {
+      console.error("Error unfollowing designer:", error);
+    } else {
+      setFollowedDesignerIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(designerId);
+        return newSet;
+      });
+    }
   };
 
   const isFollowing = (designerId: string) => {

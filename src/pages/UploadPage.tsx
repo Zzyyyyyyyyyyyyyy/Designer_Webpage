@@ -3,6 +3,7 @@ import { useState, useRef, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePosts } from "../contexts/PostsContext";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 // Product categories
 const CATEGORIES = [
@@ -33,9 +34,11 @@ export function UploadPage() {
   const [priceError, setPriceError] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCancel = () => {
@@ -127,7 +130,7 @@ export function UploadPage() {
     }
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     // Clear previous errors
     setUploadError("");
     setPriceError("");
@@ -143,48 +146,79 @@ export function UploadPage() {
       return;
     }
 
-    // Create and add the post
-    addPost({
-      imageUrl: uploadedImages[0], // First image as the main image
-      caption: title || "Untitled Post",
-      description: description || undefined,
-      images: uploadedImages,
-      price: `$${parseFloat(price).toFixed(2)}`,
-      tags: categories,
-      sizes: sizes.length > 0 ? sizes : undefined,
-      isProduct: true,
-      userName: user?.email || "Anonymous",
-    });
+    if (!user) {
+      setUploadError("You must be logged in to upload posts");
+      return;
+    }
 
-    // Show success notification
-    setShowSuccess(true);
+    setIsUploading(true);
 
-    // Navigate to home after a short delay
-    setTimeout(() => {
-      navigate("/");
-    }, 1500);
+    try {
+      // Upload images to Supabase Storage
+      const uploadedUrls: string[] = [];
+
+      for (const file of uploadedImages) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+          .from('posts')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          throw new Error(`Failed to upload image: ${error.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('posts')
+          .getPublicUrl(data.path);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      // Create and add the post
+      await addPost({
+        imageUrl: uploadedUrls[0], // First image as the main image
+        caption: title || "Untitled Post",
+        description: description || undefined,
+        images: uploadedUrls,
+        price: `$${parseFloat(price).toFixed(2)}`,
+        tags: categories,
+        sizes: sizes.length > 0 ? sizes : undefined,
+        isProduct: true,
+        userName: user?.email || "Anonymous",
+      });
+
+      // Show success notification
+      setShowSuccess(true);
+
+      // Navigate to home after a short delay
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      setUploadError(error.message || "Failed to upload post. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
 
-    const fileArray = Array.from(files);
-    const imageUrls: string[] = [];
+    const fileArray = Array.from(files).filter(file => file.type.startsWith("image/"));
 
-    fileArray.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            imageUrls.push(e.target.result as string);
-            if (imageUrls.length === fileArray.length) {
-              setUploadedImages((prev) => [...prev, ...imageUrls]);
-            }
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    // Add files to uploaded images
+    setUploadedImages((prev) => [...prev, ...fileArray]);
+
+    // Create preview URLs
+    const previewUrls = fileArray.map(file => URL.createObjectURL(file));
+    setImagePreviewUrls((prev) => [...prev, ...previewUrls]);
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -212,7 +246,12 @@ export function UploadPage() {
   };
 
   const removeImage = (index: number) => {
+    // Revoke object URL to prevent memory leak
+    URL.revokeObjectURL(imagePreviewUrls[index]);
+
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviewUrls((prev) => prev.filter((_, i) => i !== index));
+
     // Reset selected index if needed
     if (index === selectedImageIndex && uploadedImages.length > 1) {
       setSelectedImageIndex(0);
@@ -275,7 +314,7 @@ export function UploadPage() {
                 {/* Main Preview */}
                 <div className="flex-1 relative group mb-2 md:mb-4 min-h-0 overflow-hidden">
                   <img
-                    src={uploadedImages[selectedImageIndex]}
+                    src={imagePreviewUrls[selectedImageIndex]}
                     alt={`Preview ${selectedImageIndex + 1}`}
                     className="w-full h-full object-contain rounded"
                   />
@@ -288,16 +327,16 @@ export function UploadPage() {
                   >
                     <X className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
-                  {uploadedImages.length > 1 && (
+                  {imagePreviewUrls.length > 1 && (
                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs md:text-sm px-2 md:px-3 py-1 rounded-full">
-                      {selectedImageIndex + 1} / {uploadedImages.length}
+                      {selectedImageIndex + 1} / {imagePreviewUrls.length}
                     </div>
                   )}
                 </div>
 
                 {/* Thumbnails */}
                 <div className="flex gap-2 overflow-x-auto pb-2 flex-shrink-0">
-                  {uploadedImages.map((image, index) => (
+                  {imagePreviewUrls.map((previewUrl, index) => (
                     <button
                       key={index}
                       onClick={(e) => {
@@ -311,7 +350,7 @@ export function UploadPage() {
                       }`}
                     >
                       <img
-                        src={image}
+                        src={previewUrl}
                         alt={`Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover rounded"
                       />
@@ -505,14 +544,16 @@ export function UploadPage() {
         <div className="border-t border-white/10 p-4 md:p-6 bg-black">
           <button
             onClick={handlePost}
-            disabled={uploadedImages.length === 0 || !title.trim() || !price}
+            disabled={uploadedImages.length === 0 || !title.trim() || !price || isUploading}
             className={`w-full py-3 md:py-4 rounded-lg font-medium text-base md:text-lg transition-all transform ${
-              uploadedImages.length === 0 || !title.trim() || !price
+              uploadedImages.length === 0 || !title.trim() || !price || isUploading
                 ? "bg-white/10 text-white/30 cursor-not-allowed"
                 : "bg-white text-black hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]"
             }`}
           >
-            {uploadedImages.length === 0
+            {isUploading
+              ? "Uploading..."
+              : uploadedImages.length === 0
               ? "Add images to post"
               : !title.trim()
               ? "Add title to post"

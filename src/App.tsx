@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import { ComparisonProvider } from "./contexts/ComparisonContext";
 import { CartProvider } from "./contexts/CartContext";
-import { ChatProvider } from "./contexts/ChatContext.optimized";
+import { WishlistProvider } from "./contexts/WishlistContext";
+import { ChatProvider } from "./contexts/ChatContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PostsProvider } from "./contexts/PostsContext";
 import { FollowingProvider } from "./contexts/FollowingContext";
 import { FeedPage } from "./pages/FeedPage";
 import { FollowingPage } from "./pages/FollowingPage";
-import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { MessagesPage } from "./pages/MessagesPage";
 import { UploadPage } from "./pages/UploadPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -23,23 +23,24 @@ export default function App() {
       <ChatProvider>
         <ComparisonProvider>
           <CartProvider>
-            <PostsProvider>
-              <FollowingProvider>
-                <Routes>
-                  <Route path="/" element={<FeedPage />} />
-                  <Route path="/following" element={<FollowingPage />} />
-                  <Route path="/messages" element={<MessagesPage />} />
-                  <Route path="/upload" element={<UploadPage />} />
-                  <Route path="/product/:productId" element={<ProductDetailPage />} />
-                  <Route path="/account" element={<AccountPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignupPage />} />
-                  <Route path="/interests" element={<InterestsPage />} />
-                  <Route path="/welcome" element={<WelcomePage />} />
-                </Routes>
-              </FollowingProvider>
-            </PostsProvider>
+            <WishlistProvider>
+              <PostsProvider>
+                <FollowingProvider>
+                  <Routes>
+                    <Route path="/" element={<FeedPage />} />
+                    <Route path="/following" element={<FollowingPage />} />
+                    <Route path="/messages" element={<MessagesPage />} />
+                    <Route path="/upload" element={<UploadPage />} />
+                    <Route path="/account" element={<AccountPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/interests" element={<InterestsPage />} />
+                    <Route path="/welcome" element={<WelcomePage />} />
+                  </Routes>
+                </FollowingProvider>
+              </PostsProvider>
+            </WishlistProvider>
           </CartProvider>
         </ComparisonProvider>
       </ChatProvider>

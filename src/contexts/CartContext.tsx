@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "./AuthContext";
 
 export interface CartItem {
   id: string;
@@ -14,90 +16,134 @@ export interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: Omit<CartItem, "id" | "quantity"> & { quantity?: number }) => void;
-  removeFromCart: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
+  addToCart: (item: Omit<CartItem, "id" | "quantity"> & { quantity?: number }) => Promise<void>;
+  removeFromCart: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   cartCount: number;
   getTotalPrice: () => number;
+  loading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const STORAGE_KEY = "shopping_cart";
-
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setCartItems(JSON.parse(stored));
-      } catch (error) {
-        console.error("Failed to parse cart from storage:", error);
-      }
-    }
-  }, []);
-
-  // Save to localStorage whenever cart changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  const addToCart = (item: Omit<CartItem, "id" | "quantity"> & { quantity?: number }) => {
-    setCartItems((prev) => {
-      // Check if item with same productId and size already exists
-      const existingItemIndex = prev.findIndex(
-        (cartItem) => cartItem.productId === item.productId && cartItem.size === item.size
-      );
-
-      if (existingItemIndex > -1) {
-        // Update quantity of existing item
-        const updated = [...prev];
-        updated[existingItemIndex] = {
-          ...updated[existingItemIndex],
-          quantity: updated[existingItemIndex].quantity + (item.quantity || 1),
-        };
-        return updated;
-      }
-
-      // Add new item
-      const newItem: CartItem = {
-        ...item,
-        id: `${item.productId}-${item.size}-${Date.now()}`,
-        quantity: item.quantity || 1,
-      };
-
-      return [...prev, newItem];
-    });
-  };
-
-  const removeFromCart = (itemId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-  };
-
-  const updateQuantity = (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
+  const fetchCart = async () => {
+    if (!user) {
+      setCartItems([]);
+      setLoading(false);
       return;
     }
 
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity } : item))
-    );
+    const { data, error } = await supabase
+      .from("cart_items")
+      .select(
+        `
+        id,
+        product_id,
+        size,
+        quantity,
+        posts (
+          id,
+          caption,
+          images,
+          price,
+          users (
+            username
+          )
+        )
+      `
+      )
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error fetching cart:", error);
+    } else if (data) {
+      const formattedItems = data.map((item: any) => ({
+        id: item.id,
+        productId: item.product_id,
+        title: item.posts?.caption || "",
+        imageUrl: item.posts?.images[0] || "",
+        price: item.posts?.price ? `$${item.posts.price}` : "$0",
+        size: item.size,
+        quantity: item.quantity,
+        designerName: item.posts?.users?.username,
+      }));
+      setCartItems(formattedItems);
+    }
+    setLoading(false);
   };
 
-  const clearCart = () => {
-    setCartItems([]);
+  useEffect(() => {
+    fetchCart();
+  }, [user]);
+
+  const addToCart = async (item: Omit<CartItem, "id" | "quantity"> & { quantity?: number }) => {
+    if (!user) throw new Error("Must be authenticated");
+
+    const { error } = await supabase.from("cart_items").upsert({
+      user_id: user.id,
+      product_id: item.productId,
+      size: item.size,
+      quantity: item.quantity || 1,
+    });
+
+    if (error) {
+      console.error("Error adding to cart:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      throw new Error(error.message || JSON.stringify(error));
+    }
+
+    await fetchCart();
+  };
+
+  const removeFromCart = async (itemId: string) => {
+    const { error } = await supabase.from("cart_items").delete().eq("id", itemId);
+
+    if (error) {
+      console.error("Error removing from cart:", error);
+      throw error;
+    }
+
+    await fetchCart();
+  };
+
+  const updateQuantity = async (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      await removeFromCart(itemId);
+      return;
+    }
+
+    const { error } = await supabase.from("cart_items").update({ quantity }).eq("id", itemId);
+
+    if (error) {
+      console.error("Error updating quantity:", error);
+      throw error;
+    }
+
+    await fetchCart();
+  };
+
+  const clearCart = async () => {
+    if (!user) return;
+
+    const { error } = await supabase.from("cart_items").delete().eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error clearing cart:", error);
+    } else {
+      setCartItems([]);
+    }
   };
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   const getTotalPrice = () => {
     return cartItems.reduce((total, item) => {
-      // Parse price string (e.g., "$425" -> 425)
       const price = parseFloat(item.price.replace(/[^0-9.]/g, ""));
       return total + price * item.quantity;
     }, 0);
@@ -113,6 +159,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         cartCount,
         getTotalPrice,
+        loading,
       }}
     >
       {children}

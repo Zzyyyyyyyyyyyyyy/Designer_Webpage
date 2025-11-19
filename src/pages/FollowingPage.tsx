@@ -10,7 +10,7 @@ import { ComparisonBar, ProductComparison } from "@/components/ProductComparison
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { useFollowing, DesignerPost } from "@/contexts/FollowingContext";
-import { getFollowingPosts } from "@/constants/designerPosts";
+import { usePosts } from "@/contexts/PostsContext";
 import { TIMING } from "@/constants/uiConstants";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -43,12 +43,34 @@ export function FollowingPage() {
     unfollowDesigner,
     getNewPostCount,
   } = useFollowing();
+  const { posts: allPosts, loading: postsLoading } = usePosts();
 
   // Get posts from followed designers - memoized to prevent unnecessary recalculations
-  const followingPosts = useMemo(
-    () => getFollowingPosts(followedDesignerIds),
-    [followedDesignerIds]
-  );
+  const followingPosts: DesignerPost[] = useMemo(() => {
+    return allPosts
+      .filter((post) => followedDesignerIds.has(post.user_id))
+      .map((post) => ({
+        id: post.id,
+        imageUrl: post.imageUrl,
+        caption: post.caption,
+        designerId: post.user_id,
+        designerName: post.userName || "Unknown",
+        designerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+        designerUsername: post.userName || "unknown",
+        timestamp: post.createdAt,
+        likes: post.likes_count,
+        saves: post.saves_count,
+        isLiked: false,
+        isSaved: false,
+        isProduct: post.isProduct,
+        price: post.price,
+        sizes: post.sizes,
+        description: post.description,
+        details: post.details,
+        images: post.images,
+        tags: post.tags,
+      }));
+  }, [allPosts, followedDesignerIds]);
 
   // Get recommended designers (not followed) - memoized
   const recommendedDesigners = useMemo(
@@ -57,11 +79,11 @@ export function FollowingPage() {
   );
 
   useEffect(() => {
-    // Simulate initial loading
-    setTimeout(() => {
+    // Set loading to false when posts are loaded
+    if (!postsLoading) {
       setIsLoading(false);
-    }, TIMING.INITIAL_LOAD_DELAY);
-  }, []);
+    }
+  }, [postsLoading]);
 
   useEffect(() => {
     // Always use consistent debounce for all filtering operations

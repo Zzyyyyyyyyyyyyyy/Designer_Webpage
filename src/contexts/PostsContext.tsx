@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "./AuthContext";
 
-// User post interface matching FeedPage's ExtendedFashionPost structure
 export interface UserPost {
   id: string;
+  user_id: string;
   imageUrl: string;
   caption: string;
   images: string[];
@@ -13,73 +15,129 @@ export interface UserPost {
   sizes?: string[];
   description?: string;
   details?: string;
-  createdAt: number; // timestamp for sorting
+  createdAt: number;
+  likes_count: number;
+  saves_count: number;
 }
 
 interface PostsContextType {
   posts: UserPost[];
-  addPost: (post: Omit<UserPost, "id" | "createdAt">) => void;
+  addPost: (post: Omit<UserPost, "id" | "createdAt" | "user_id" | "likes_count" | "saves_count">) => Promise<void>;
   getPosts: () => UserPost[];
-  clearPosts: () => void;
+  clearPosts: () => Promise<void>;
+  loading: boolean;
+  refetch: () => Promise<void>;
 }
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
-const STORAGE_KEY = "designer_user_posts";
-
 export function PostsProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<UserPost[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Load posts from localStorage on mount
-  useEffect(() => {
-    try {
-      const storedPosts = localStorage.getItem(STORAGE_KEY);
-      if (storedPosts) {
-        const parsedPosts = JSON.parse(storedPosts);
-        setPosts(parsedPosts);
-      }
-    } catch (error) {
-      console.error("Failed to load posts from localStorage:", error);
-    } finally {
-      setIsLoaded(true);
+  const fetchPosts = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
+        `
+        id,
+        user_id,
+        caption,
+        description,
+        details,
+        images,
+        price,
+        sizes,
+        tags,
+        is_product,
+        created_at,
+        likes_count,
+        saves_count,
+        users (
+          username,
+          email
+        )
+      `
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching posts:", error);
+    } else if (data) {
+      const formattedPosts = data.map((post: any) => ({
+        id: post.id,
+        user_id: post.user_id,
+        imageUrl: post.images[0] || "",
+        caption: post.caption,
+        images: post.images,
+        price: post.price ? `$${post.price}` : "$0",
+        tags: post.tags || [],
+        isProduct: post.is_product,
+        userName: post.users?.username || post.users?.email,
+        sizes: post.sizes,
+        description: post.description || undefined,
+        details: post.details || undefined,
+        createdAt: new Date(post.created_at).getTime(),
+        likes_count: post.likes_count,
+        saves_count: post.saves_count,
+      }));
+      setPosts(formattedPosts);
     }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPosts();
   }, []);
 
-  // Save posts to localStorage whenever they change
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-      } catch (error) {
-        console.error("Failed to save posts to localStorage:", error);
-      }
+  const addPost = async (
+    post: Omit<UserPost, "id" | "createdAt" | "user_id" | "likes_count" | "saves_count">
+  ) => {
+    if (!user) throw new Error("Must be authenticated to create posts");
+
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({
+        user_id: user.id,
+        caption: post.caption,
+        description: post.description,
+        details: post.details,
+        images: post.images,
+        is_product: post.isProduct,
+        price: parseFloat(post.price.replace("$", "")),
+        sizes: post.sizes,
+        tags: post.tags,
+      })
+      .select();
+
+    if (error) {
+      console.error("Error creating post:", error);
+      throw error;
     }
-  }, [posts, isLoaded]);
 
-  const addPost = (post: Omit<UserPost, "id" | "createdAt">) => {
-    const newPost: UserPost = {
-      ...post,
-      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      createdAt: Date.now(),
-    };
-
-    // Add new post at the beginning (most recent first)
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
+    await fetchPosts();
   };
 
   const getPosts = () => {
-    // Return posts sorted by most recent first
     return [...posts].sort((a, b) => b.createdAt - a.createdAt);
   };
 
-  const clearPosts = () => {
-    setPosts([]);
-    localStorage.removeItem(STORAGE_KEY);
+  const clearPosts = async () => {
+    if (!user) return;
+
+    const { error } = await supabase.from("posts").delete().eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error clearing posts:", error);
+    } else {
+      setPosts([]);
+    }
   };
 
   return (
-    <PostsContext.Provider value={{ posts, addPost, getPosts, clearPosts }}>
+    <PostsContext.Provider value={{ posts, addPost, getPosts, clearPosts, loading, refetch: fetchPosts }}>
       {children}
     </PostsContext.Provider>
   );

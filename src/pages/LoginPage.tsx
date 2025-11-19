@@ -47,8 +47,10 @@ export function LoginPage() {
       await login(email, password);
       // Navigate to home page after successful login
       navigate("/");
-    } catch (error) {
-      setErrors({ password: "Login failed. Please try again." });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      const errorMessage = error?.message || "Login failed. Please try again.";
+      setErrors({ password: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
