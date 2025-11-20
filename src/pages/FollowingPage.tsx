@@ -47,29 +47,40 @@ export function FollowingPage() {
 
   // Get posts from followed designers - memoized to prevent unnecessary recalculations
   const followingPosts: DesignerPost[] = useMemo(() => {
-    return allPosts
-      .filter((post) => followedDesignerIds.has(post.user_id))
-      .map((post) => ({
-        id: post.id,
-        imageUrl: post.imageUrl,
-        caption: post.caption,
-        designerId: post.user_id,
-        designerName: post.userName || "Unknown",
-        designerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
-        designerUsername: post.userName || "unknown",
-        timestamp: post.createdAt,
-        likes: post.likes_count,
-        saves: post.saves_count,
-        isLiked: false,
-        isSaved: false,
-        isProduct: post.isProduct,
-        price: post.price,
-        sizes: post.sizes,
-        description: post.description,
-        details: post.details,
-        images: post.images,
-        tags: post.tags,
-      }));
+    console.log("Following page - Followed designer IDs:", Array.from(followedDesignerIds));
+    console.log("Following page - All posts count:", allPosts.length);
+
+    const filtered = allPosts.filter((post) => {
+      const isFollowed = followedDesignerIds.has(post.user_id);
+      if (isFollowed) {
+        console.log("Found post from followed designer:", post.user_id, post.caption);
+      }
+      return isFollowed;
+    });
+
+    console.log("Following page - Filtered posts count:", filtered.length);
+
+    return filtered.map((post) => ({
+      id: post.id,
+      imageUrl: post.imageUrl,
+      caption: post.caption,
+      designerId: post.user_id,
+      designerName: post.userName || "Unknown",
+      designerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+      designerUsername: post.userName || "unknown",
+      timestamp: post.createdAt,
+      likes: post.likes_count,
+      saves: post.saves_count,
+      isLiked: false,
+      isSaved: false,
+      isProduct: post.isProduct,
+      price: post.price,
+      sizes: post.sizes,
+      description: post.description,
+      details: post.details,
+      images: post.images,
+      tags: post.tags,
+    }));
   }, [allPosts, followedDesignerIds]);
 
   // Get recommended designers (not followed) - memoized

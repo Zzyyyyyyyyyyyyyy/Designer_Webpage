@@ -9,7 +9,7 @@ interface FashionCardProps {
   onClick?: () => void;
 }
 
-export function FashionCard({ imageUrl, caption, id, onClick }: FashionCardProps) {
+export function FashionCard({ imageUrl, caption, id: _id, onClick }: FashionCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 

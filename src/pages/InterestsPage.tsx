@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
 
 interface Interest {
   id: string;
@@ -28,7 +27,6 @@ const MIN_SELECTION = 3;
 
 export function InterestsPage() {
   const navigate = useNavigate();
-  const { saveInterests } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   const toggleInterest = (interestId: string) => {
@@ -43,8 +41,8 @@ export function InterestsPage() {
 
   const handleContinue = () => {
     if (selectedInterests.length >= MIN_SELECTION) {
-      // Save interests to auth context
-      saveInterests(selectedInterests);
+      // TODO: Save interests to user profile in Supabase
+      // For now, just navigate to welcome page
       navigate("/welcome");
     }
   };

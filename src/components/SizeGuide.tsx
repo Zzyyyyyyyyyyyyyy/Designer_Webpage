@@ -20,7 +20,7 @@ interface SizeData {
   length: string;
 }
 
-export function SizeGuide({ category = "clothing" }: SizeGuideProps) {
+export function SizeGuide({ category: _category = "clothing" }: SizeGuideProps) {
   // BACKEND API PLACEHOLDER: Fetch size guide data based on category
   // TODO: Replace with actual API call to /api/size-guide/:category
   const sizeData: SizeData[] = [

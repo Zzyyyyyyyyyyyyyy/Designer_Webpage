@@ -337,7 +337,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     // socket.emit('mark_read', { conversationId });
   }, []);
 
-  const loadMessages = useCallback(async (conversationId: string) => {
+  const loadMessages = useCallback(async (_conversationId: string) => {
     setIsLoading(true);
 
     // BACKEND API PLACEHOLDER: Load messages from server

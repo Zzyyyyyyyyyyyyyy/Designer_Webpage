@@ -57,6 +57,23 @@ interface UserProfile {
   likes: number;
 }
 
+interface EmailNotifications {
+  newFollower: boolean;
+  likes: boolean;
+  comments: boolean;
+  messages: boolean;
+  systemUpdates: boolean;
+  marketing: boolean;
+}
+
+interface PushNotifications {
+  enabled: boolean;
+  newFollower: boolean;
+  likes: boolean;
+  comments: boolean;
+  messages: boolean;
+}
+
 interface UserSettings {
   // Privacy
   profileVisibility: "public" | "followers" | "private";
@@ -65,21 +82,8 @@ interface UserSettings {
   indexable: boolean;
 
   // Notifications
-  emailNotifications: {
-    newFollower: boolean;
-    likes: boolean;
-    comments: boolean;
-    messages: boolean;
-    systemUpdates: boolean;
-    marketing: boolean;
-  };
-  pushNotifications: {
-    enabled: boolean;
-    newFollower: boolean;
-    likes: boolean;
-    comments: boolean;
-    messages: boolean;
-  };
+  emailNotifications: EmailNotifications;
+  pushNotifications: PushNotifications;
   notificationFrequency: "realtime" | "daily" | "weekly";
 
   // Preferences
@@ -96,7 +100,6 @@ interface UserSettings {
 interface User {
   id: string;
   email: string;
-  interests: string[];
   profile: UserProfile;
   settings: UserSettings;
 }
@@ -108,15 +111,15 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  saveInterests: (interests: string[]) => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
   updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default user profile
-const createDefaultProfile = (): UserProfile => ({
+// Default user profile (unused - constructed inline instead)
+/* eslint-disable @typescript-eslint/no-unused-vars */
+const _createDefaultProfile = (): UserProfile => ({
   skills: [],
   experience: [],
   education: [],
@@ -185,21 +188,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Combine data
       const profile: UserProfile = {
-        fullName: userData?.full_name,
-        username: userData?.username,
-        avatar: userData?.avatar_url,
-        profession: userData?.profession,
-        bio: userData?.bio,
-        about: userData?.about,
-        location: userData?.location,
+        fullName: userData?.full_name ?? undefined,
+        username: userData?.username ?? undefined,
+        avatar: userData?.avatar_url ?? undefined,
+        profession: userData?.profession ?? undefined,
+        bio: userData?.bio ?? undefined,
+        about: userData?.about ?? undefined,
+        location: userData?.location ?? undefined,
         skills: userData?.skills || [],
-        experience: userData?.experience || [],
-        education: userData?.education || [],
+        experience: [], // TODO: Store experience in separate table
+        education: [], // TODO: Store education in separate table
         certifications: userData?.certifications || [],
-        services: userData?.services,
-        priceRange: userData?.price_range,
+        services: userData?.services ?? undefined,
+        priceRange: userData?.price_range ?? undefined,
         isAvailable: userData?.is_available ?? true,
-        socialLinks: userData?.social_links || {},
+        socialLinks: (userData?.social_links as SocialLinks) || {},
         followers: userData?.followers_count || 0,
         following: userData?.following_count || 0,
         likes: 0,
@@ -207,13 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const settings: UserSettings = settingsData
         ? {
-            profileVisibility: settingsData.profile_visibility || "public",
+            profileVisibility: (settingsData.profile_visibility as "public" | "followers" | "private") || "public",
             showEmail: settingsData.show_email ?? false,
             showStats: settingsData.show_stats ?? true,
             indexable: settingsData.indexable ?? true,
-            emailNotifications: settingsData.email_notifications || createDefaultSettings().emailNotifications,
-            pushNotifications: settingsData.push_notifications || createDefaultSettings().pushNotifications,
-            notificationFrequency: settingsData.notification_frequency || "realtime",
+            emailNotifications: (settingsData.email_notifications as unknown as EmailNotifications) || createDefaultSettings().emailNotifications,
+            pushNotifications: (settingsData.push_notifications as unknown as PushNotifications) || createDefaultSettings().pushNotifications,
+            notificationFrequency: (settingsData.notification_frequency as "realtime" | "daily" | "weekly") || "realtime",
             language: settingsData.language || "en",
             timezone: settingsData.timezone || "UTC",
             currency: settingsData.currency || "USD",
@@ -226,7 +229,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         id: supabaseUser.id,
         email: supabaseUser.email!,
-        interests: userData?.interests || [],
         profile,
         settings,
       });
@@ -266,11 +268,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
 
     // Create user profile
-    if (data.user) {
+    if (data.user && data.user.email) {
       await supabase.from("users").insert({
         id: data.user.id,
         email: data.user.email,
-        interests: [],
       });
 
       // Create user settings
@@ -294,21 +295,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const saveInterests = async (interests: string[]) => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from("users")
-      .update({ interests })
-      .eq("id", user.id);
-
-    if (error) throw error;
-
-    setUser({
-      ...user,
-      interests,
-    });
-  };
+  // Removed saveInterests - no longer needed as interests are not stored
 
   const updateProfile = async (profileUpdates: Partial<UserProfile>) => {
     if (!user) return;
@@ -394,7 +381,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
-    saveInterests,
     updateProfile,
     updateSettings,
   };

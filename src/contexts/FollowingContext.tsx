@@ -54,8 +54,8 @@ const FollowingContext = createContext<FollowingContextType | undefined>(undefin
 export function FollowingProvider({ children }: { children: ReactNode }) {
   const [followedDesignerIds, setFollowedDesignerIds] = useState<Set<string>>(new Set());
   const [allDesigners, setAllDesigners] = useState<Designer[]>([]);
-  const [lastVisitTimestamps, setLastVisitTimestamps] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
+  const [_lastVisitTimestamps, _setLastVisitTimestamps] = useState<Record<string, number>>({});
+  const [_loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   // Fetch all designers from Supabase
@@ -162,7 +162,7 @@ export function FollowingProvider({ children }: { children: ReactNode }) {
   const getNewPostCount = (designerId: string) => {
     // In a real app, this would check against actual post timestamps
     // For now, return a mock count based on designer ID
-    const lastVisit = lastVisitTimestamps[designerId] || 0;
+    const lastVisit = _lastVisitTimestamps[designerId] || 0;
     const now = Date.now();
     const daysSinceVisit = (now - lastVisit) / (1000 * 60 * 60 * 24);
 

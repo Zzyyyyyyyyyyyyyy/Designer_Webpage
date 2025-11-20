@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Scale, Play } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Scale, Play, UserPlus, UserCheck } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { FashionPost } from "./MasonryFeed";
 import { DesignerPost } from "@/contexts/FollowingContext";
@@ -10,6 +10,8 @@ import { useComparison } from "@/contexts/ComparisonContext";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { VideoPlayer } from "./VideoPlayer";
+import { useFollowing } from "@/contexts/FollowingContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MediaItem {
   type: "image" | "video";
@@ -43,9 +45,35 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
   const [zoomLevel, setZoomLevel] = useState(1);
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
   const { addToCart } = useCart();
-  const { isInWishlist, toggleWishlist, wishlistItems } = useWishlist();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isFollowing, followDesigner, unfollowDesigner } = useFollowing();
+  const { user } = useAuth();
 
   const isProductInWishlist = isInWishlist(item.id);
+
+  // Get designer ID from item
+  const designerId = "designerId" in item ? item.designerId : ("user_id" in item ? item.user_id : null);
+  const designerName = "designerName" in item ? item.designerName : ("userName" in item ? item.userName : "Unknown");
+  const designerAvatar = "designerAvatar" in item ? item.designerAvatar : undefined;
+  const isFollowingDesigner = designerId ? isFollowing(designerId) : false;
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      alert("Please log in to follow designers");
+      return;
+    }
+    if (!designerId) return;
+
+    try {
+      if (isFollowingDesigner) {
+        await unfollowDesigner(designerId);
+      } else {
+        await followDesigner(designerId);
+      }
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+    }
+  };
 
   const mediaItems: MediaItem[] = [
     ...(item.images || [item.imageUrl]).map((url) => ({ type: "image" as const, url })),
@@ -198,12 +226,52 @@ export function ItemDetail({ item, relatedItems, onBack, onItemClick }: ItemDeta
               <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                 {item.caption}
               </h1>
-              {"designerName" in item && item.designerName && (
-                <p className="text-gray-400 text-sm">
-                  by <span className="font-medium text-white">{item.designerName}</span>
-                </p>
-              )}
             </div>
+
+            {/* Designer Card */}
+            {designerId && designerId !== user?.id && (
+              <div className="flex items-center justify-between p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                <div className="flex items-center gap-3">
+                  {designerAvatar ? (
+                    <img
+                      src={designerAvatar}
+                      alt={designerName}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">
+                        {designerName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-white font-medium">{designerName}</p>
+                    <p className="text-gray-400 text-sm">Designer</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleFollowToggle}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                    isFollowingDesigner
+                      ? "bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700"
+                      : "bg-white text-black hover:bg-gray-200"
+                  }`}
+                >
+                  {isFollowingDesigner ? (
+                    <>
+                      <UserCheck className="w-4 h-4" />
+                      Following
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      Follow
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Price */}
             <div className="text-2xl font-bold text-white">

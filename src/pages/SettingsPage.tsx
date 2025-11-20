@@ -5,14 +5,12 @@ import {
   Shield,
   Bell,
   Palette,
-  Globe,
   Lock,
   Eye,
   EyeOff,
   Mail,
   User,
   Save,
-  ChevronRight,
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -48,8 +46,8 @@ export function SettingsPage() {
     user?.settings.profileVisibility || "public"
   );
   const [showEmail, setShowEmail] = useState(user?.settings.showEmail || false);
-  const [showStats, setShowStats] = useState(user?.settings.showStats || true);
-  const [indexable, setIndexable] = useState(user?.settings.indexable || true);
+  const [showStats, setShowStats] = useState<boolean>(user?.settings.showStats ?? true);
+  const [indexable, setIndexable] = useState<boolean>(user?.settings.indexable ?? true);
 
   // Notifications
   const [emailNotifications, setEmailNotifications] = useState(
@@ -62,7 +60,7 @@ export function SettingsPage() {
       marketing: false,
     }
   );
-  const [pushNotifications, setPushNotifications] = useState(
+  const [pushNotifications, _setPushNotifications] = useState(
     user?.settings.pushNotifications || {
       enabled: false,
       newFollower: true,

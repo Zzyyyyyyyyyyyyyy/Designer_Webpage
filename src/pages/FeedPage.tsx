@@ -21,8 +21,9 @@ interface ExtendedFashionPost extends FashionPost {
   tags?: string[];
 }
 
-// Mock fashion posts data with extended details
-const mockPosts: ExtendedFashionPost[] = [
+// Mock fashion posts data with extended details (unused - using Supabase data)
+/* eslint-disable @typescript-eslint/no-unused-vars */
+const _mockPosts: ExtendedFashionPost[] = [
   {
     id: "1",
     imageUrl: "https://images.unsplash.com/photo-1653875842174-429c1b467548?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBtaW5pbWFsfGVufDF8fHx8MTc2MDAxMzY1NHww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -319,8 +320,30 @@ export function FeedPage() {
   useEffect(() => {
     // Simulate initial loading
     setTimeout(() => {
-      // Sort user posts by createdAt (most recent first)
-      const sortedUserPosts = [...userPosts].sort((a, b) => b.createdAt - a.createdAt);
+      // Sort user posts by createdAt (most recent first) and convert to ExtendedFashionPost
+      const sortedUserPosts = [...userPosts]
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .map((post) => ({
+          id: post.id,
+          imageUrl: post.imageUrl,
+          caption: post.caption,
+          designerId: post.user_id,
+          designerName: post.userName || "Unknown",
+          designerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+          designerUsername: post.userName || "unknown",
+          timestamp: post.createdAt,
+          likes: post.likes_count,
+          saves: post.saves_count,
+          isLiked: false,
+          isSaved: false,
+          images: post.images,
+          price: post.price,
+          sizes: post.sizes,
+          description: post.description,
+          details: post.details,
+          isProduct: post.isProduct,
+          tags: post.tags,
+        }));
       // Use only real Supabase posts (no mock data)
       setPosts(sortedUserPosts);
       setIsLoading(false);

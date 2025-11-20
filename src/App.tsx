@@ -6,6 +6,11 @@ import { ChatProvider } from "./contexts/ChatContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PostsProvider } from "./contexts/PostsContext";
 import { FollowingProvider } from "./contexts/FollowingContext";
+import { LikesProvider } from "./contexts/LikesContext";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
+import { ReviewsProvider } from "./contexts/ReviewsContext";
+import { QuestionsProvider } from "./contexts/QuestionsContext";
+import { OrdersProvider } from "./contexts/OrdersContext";
 import { FeedPage } from "./pages/FeedPage";
 import { FollowingPage } from "./pages/FollowingPage";
 import { MessagesPage } from "./pages/MessagesPage";
@@ -20,30 +25,40 @@ import { SettingsPage } from "./pages/SettingsPage";
 export default function App() {
   return (
     <AuthProvider>
-      <ChatProvider>
-        <ComparisonProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <PostsProvider>
-                <FollowingProvider>
-                  <Routes>
-                    <Route path="/" element={<FeedPage />} />
-                    <Route path="/following" element={<FollowingPage />} />
-                    <Route path="/messages" element={<MessagesPage />} />
-                    <Route path="/upload" element={<UploadPage />} />
-                    <Route path="/account" element={<AccountPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
-                    <Route path="/interests" element={<InterestsPage />} />
-                    <Route path="/welcome" element={<WelcomePage />} />
-                  </Routes>
-                </FollowingProvider>
-              </PostsProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </ComparisonProvider>
-      </ChatProvider>
+      <NotificationsProvider>
+        <ChatProvider>
+          <ComparisonProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <PostsProvider>
+                  <LikesProvider>
+                    <FollowingProvider>
+                      <ReviewsProvider>
+                        <QuestionsProvider>
+                          <OrdersProvider>
+                            <Routes>
+                              <Route path="/" element={<FeedPage />} />
+                              <Route path="/following" element={<FollowingPage />} />
+                              <Route path="/messages" element={<MessagesPage />} />
+                              <Route path="/upload" element={<UploadPage />} />
+                              <Route path="/account" element={<AccountPage />} />
+                              <Route path="/settings" element={<SettingsPage />} />
+                              <Route path="/login" element={<LoginPage />} />
+                              <Route path="/signup" element={<SignupPage />} />
+                              <Route path="/interests" element={<InterestsPage />} />
+                              <Route path="/welcome" element={<WelcomePage />} />
+                            </Routes>
+                          </OrdersProvider>
+                        </QuestionsProvider>
+                      </ReviewsProvider>
+                    </FollowingProvider>
+                  </LikesProvider>
+                </PostsProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </ComparisonProvider>
+        </ChatProvider>
+      </NotificationsProvider>
     </AuthProvider>
   );
 }

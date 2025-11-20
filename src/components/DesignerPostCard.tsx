@@ -55,16 +55,22 @@ export const DesignerPostCard = memo(function DesignerPostCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [isSaved, setIsSaved] = useState(initialIsSaved);
+  const [likesCount, setLikesCount] = useState(likes);
+  const [savesCount, setSavesCount] = useState(saves);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikesCount(prev => newIsLiked ? prev + 1 : prev - 1);
     onLike?.();
   };
 
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsSaved(!isSaved);
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    setSavesCount(prev => newIsSaved ? prev + 1 : prev - 1);
     onSave?.();
   };
 
@@ -138,11 +144,11 @@ export const DesignerPostCard = memo(function DesignerPostCard({
         <div className="flex items-center gap-4 text-sm text-gray-400">
           <span className="flex items-center gap-1.5">
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-            <span className="font-medium">{likes.toLocaleString()}</span>
+            <span className="font-medium">{likesCount.toLocaleString()}</span>
           </span>
           <span className="flex items-center gap-1.5">
             <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-white text-white' : ''}`} />
-            <span className="font-medium">{saves.toLocaleString()}</span>
+            <span className="font-medium">{savesCount.toLocaleString()}</span>
           </span>
         </div>
       </div>

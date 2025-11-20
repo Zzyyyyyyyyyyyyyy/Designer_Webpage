@@ -11,7 +11,6 @@ import {
   X,
   Save,
   Award,
-  GraduationCap,
   Settings as SettingsIcon,
   ArrowLeft,
 } from "lucide-react";

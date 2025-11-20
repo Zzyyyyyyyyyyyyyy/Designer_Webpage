@@ -97,7 +97,7 @@ export function PostsProvider({ children }: { children: ReactNode }) {
   ) => {
     if (!user) throw new Error("Must be authenticated to create posts");
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("posts")
       .insert({
         user_id: user.id,

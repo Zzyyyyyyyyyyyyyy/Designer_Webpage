@@ -59,7 +59,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const [_realtimeChannel, _setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
   // Current user from auth
   const currentUser: User | null = useMemo(() => {
@@ -83,19 +83,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       .from("conversations")
       .select(`
         id,
-        participant1_id,
-        participant2_id,
+        participant_ids,
         updated_at,
         messages (
           id,
           sender_id,
           content,
           created_at,
-          is_read,
+          read_by,
           message_type
         )
       `)
-      .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
+      .contains("participant_ids", [user.id])
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -107,7 +106,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       // Format conversations
       const formattedConversations = await Promise.all(
         data.map(async (conv: any) => {
-          const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
+          // Find the other participant (not current user)
+          const participantIds = conv.participant_ids as string[];
+          const otherUserId = participantIds.find(id => id !== user.id);
+
+          if (!otherUserId) {
+            console.error("No other user found in conversation:", conv.id);
+            return null;
+          }
 
           // Fetch other user details
           const { data: userData } = await supabase
@@ -121,7 +127,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             {
               id: otherUserId,
               username: userData?.username || "Unknown",
-              avatarUrl: userData?.avatar_url,
+              avatarUrl: userData?.avatar_url || undefined,
               online: false,
             }
           ];
@@ -138,13 +144,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             senderId: lastMsg.sender_id,
             content: lastMsg.content,
             timestamp: lastMsg.created_at,
-            read: lastMsg.is_read,
+            read: lastMsg.read_by?.[user.id] === true,
             type: lastMsg.message_type as 'text' | 'image' | 'file',
           } : null;
 
           // Count unread messages
           const unreadCount = sortedMessages.filter((msg: any) =>
-            msg.sender_id !== user.id && !msg.is_read
+            msg.sender_id !== user.id && !msg.read_by?.[user.id]
           ).length;
 
           return {
@@ -157,12 +163,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         })
       );
 
-      setConversations(formattedConversations);
+      // Filter out null values (in case of errors)
+      const validConversations = formattedConversations.filter(conv => conv !== null);
+      setConversations(validConversations);
     }
   }, [user, currentUser]);
 
   // Fetch messages for a specific conversation
   const fetchMessages = useCallback(async (conversationId: string) => {
+    if (!user) return;
+
     const { data, error } = await supabase
       .from("messages")
       .select("*")
@@ -181,7 +191,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         senderId: msg.sender_id,
         content: msg.content,
         timestamp: msg.created_at,
-        read: msg.is_read,
+        read: msg.read_by?.[user.id] === true,
         type: msg.message_type as 'text' | 'image' | 'file',
       }));
 
@@ -190,7 +200,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         [conversationId]: formattedMessages,
       }));
     }
-  }, []);
+  }, [user]);
 
   // Load initial data
   useEffect(() => {
@@ -225,7 +235,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               senderId: newMessage.sender_id,
               content: newMessage.content,
               timestamp: newMessage.created_at,
-              read: newMessage.is_read,
+              read: newMessage.read_by?.[user.id] === true,
               type: newMessage.message_type,
             };
             return {
@@ -240,7 +250,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
-    setRealtimeChannel(channel);
+    _setRealtimeChannel(channel);
 
     return () => {
       channel.unsubscribe();
@@ -267,7 +277,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         sender_id: user.id,
         content,
         message_type: 'text',
-        is_read: false,
       });
 
     if (error) {
@@ -285,23 +294,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const markAsRead = useCallback(async (conversationId: string) => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from("messages")
-      .update({ is_read: true })
-      .eq("conversation_id", conversationId)
-      .eq("is_read", false)
-      .neq("sender_id", user.id);
+    // Update read_by JSON field to mark messages as read
+    const { error } = await supabase.rpc("mark_messages_read", {
+      p_conversation_id: conversationId,
+      p_user_id: user.id,
+    });
 
     if (error) {
-      console.error("Error marking as read:", error);
+      console.error("Error marking messages as read:", error);
     } else {
       // Update local state
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === conversationId
-            ? { ...conv, unreadCount: 0 }
-            : conv
-        )
+      setConversations((prev) =>
+        prev.map((conv) => (conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv))
       );
     }
   }, [user]);
@@ -316,22 +320,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!user) return null;
 
     // Check if conversation already exists
-    const { data: existing } = await supabase
+    const { data: existingConversations } = await supabase
       .from("conversations")
-      .select("id")
-      .or(`and(participant1_id.eq.${user.id},participant2_id.eq.${participantId}),and(participant1_id.eq.${participantId},participant2_id.eq.${user.id})`)
-      .single();
+      .select("id, participant_ids")
+      .contains("participant_ids", [user.id, participantId]);
 
-    if (existing) {
-      return existing.id;
+    if (existingConversations && existingConversations.length > 0) {
+      return existingConversations[0].id;
     }
 
     // Create new conversation
     const { data, error } = await supabase
       .from("conversations")
       .insert({
-        participant1_id: user.id,
-        participant2_id: participantId,
+        participant_ids: [user.id, participantId],
       })
       .select()
       .single();

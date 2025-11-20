@@ -32,7 +32,7 @@ interface ProductQAProps {
   productId?: string;
 }
 
-export function ProductQA({ productId }: ProductQAProps) {
+export function ProductQA({ productId: _productId }: ProductQAProps) {
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [questionInput, setQuestionInput] = useState("");
   const [sortBy, setSortBy] = useState<"helpful" | "newest">("helpful");

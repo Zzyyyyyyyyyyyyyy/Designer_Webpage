@@ -160,7 +160,7 @@ export function ShareProduct({ productTitle, productUrl }: ShareProductProps) {
         </DropdownMenuItem>
 
         {/* Native Share API (if available) */}
-        {typeof navigator !== "undefined" && navigator.share && (
+        {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
           <>
             <DropdownMenuSeparator className="bg-gray-900" />
             <DropdownMenuItem

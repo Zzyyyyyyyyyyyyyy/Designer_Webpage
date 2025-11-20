@@ -3,7 +3,7 @@ import { NavigationBar } from "@/components/NavigationBar";
 import { ConversationList } from "@/components/ConversationList";
 import { ChatArea } from "@/components/ChatArea";
 import { MessageInput } from "@/components/MessageInput";
-import { useChat } from "@/contexts/ChatContext.optimized";
+import { useChat } from "@/contexts/ChatContext";
 
 export function MessagesPage() {
   const {
@@ -15,6 +15,18 @@ export function MessagesPage() {
     selectConversation,
     sendMessage,
   } = useChat();
+
+  // Redirect to login if not authenticated
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-xl mb-4">Please log in to view messages</p>
+          <a href="/login" className="text-blue-500 hover:underline">Go to Login</a>
+        </div>
+      </div>
+    );
+  }
 
   // State for mobile view: whether to show conversation list or chat
   const [showMobileChat, setShowMobileChat] = useState(false);
