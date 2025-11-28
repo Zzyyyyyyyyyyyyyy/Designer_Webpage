@@ -1,5 +1,5 @@
 import { User, ArrowLeft } from "lucide-react";
-import { Message, Conversation } from "@/contexts/ChatContext.optimized";
+import { Message, Conversation } from "@/contexts/ChatContext";
 import { useEffect, useRef } from "react";
 
 interface ChatAreaProps {

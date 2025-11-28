@@ -1,5 +1,5 @@
 import { User } from "lucide-react";
-import { Conversation } from "@/contexts/ChatContext.optimized";
+import { Conversation } from "@/contexts/ChatContext";
 import { formatDistanceToNow } from "@/lib/utils";
 
 interface ConversationListProps {
